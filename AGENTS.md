@@ -29,6 +29,19 @@ tagged `v<version>`; consumers pin a tag or the same npm version.
   descriptions or messages; the project's names reach it only through the
   entry points. It uses `node:*` modules only, never a runtime's own globals,
   so it runs on Node and Bun.
+- **No check fixes a house style.** A check that compares forms reads the
+  value it holds the text to from the resolved conventions, never from a
+  constant; a new rule that prefers one legitimate wording to another is off
+  by default. See "Neutral by default" in the conventions.
+- **Every rule cites an anchor in the skill's references**, and a test keeps
+  the two in sync; a new rule adds its section to the references in the same
+  change. Renaming a rule id breaks the `rules` settings that name it.
+- **Only the engine call reads tokens**, and a missing or failed engine never
+  fails a call: the rules that need tokens are listed in `not_run`.
+- **The text is never kept.** No tool writes, logs or caches it, and the
+  report carries only excerpts.
+- **Word lists and patterns are the package's own data.** One taken from
+  elsewhere is attributed in the same change.
 
 - **Tool IDs are a public interface.** Permission rules and skills key on them
   (`<prefix>_<domain>_<verb>`); renaming one is a breaking change.
