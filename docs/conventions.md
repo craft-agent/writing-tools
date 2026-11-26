@@ -590,3 +590,246 @@ and every entry point checks them the same way.
   against a fake of that program on `PATH`.
 - A test file stays within about 300 lines, split by topic
   (`<name>.<topic>.test.ts`), so one commit can carry a change and its test.
+
+## Neutral by default
+
+- **The package has no house style.** Japanese prose has several legitimate
+  conventions for the same thing: polite or plain endings, a space or none
+  between Japanese and a Latin word, full- or half-width brackets, `〜` or
+  `～`. A check never prefers one of them on its own. With no setting, it
+  reports only a document that mixes two, which costs any reader, whichever
+  convention the writer meant.
+- **A house style is given, never assumed.** Each convention is a setting
+  whose default is `document` (see "Conventions"), and a call may override
+  it. The order is a call's argument, then the setting, then what the
+  document does consistently; where the document settles nothing, nothing is
+  expected.
+- **A rule that prefers one wording to another legitimate one is off by
+  default.** It runs only when the `rules` setting or argument names it. What
+  one team calls stock phrasing is another's plain usage, and a check that
+  fires on legitimate text teaches the agent to rewrite good prose.
+- **No caller, harness or agent is named** in the tool, its descriptions, its
+  messages or the skill. The tool reports; what a caller does with a finding
+  is the caller's.
+- **No score.** A number out of 100 adds up preference rules with faults and
+  hides which is which, and the threshold it is held to is a house style too.
+  The report counts findings by check and severity, and judging a text as a
+  whole is left to the caller, whom the skill tells how.
+
+## The tool
+
+- **One read tool, `writing_text_read`**, in the toolset `text`, with two
+  methods:
+
+  | Method    | Takes                                         | Returns                                   |
+  | --------- | --------------------------------------------- | ----------------------------------------- |
+  | `inspect` | `text`, and which `checks` to run             | findings, and the outline and terms asked |
+  | `compare` | `text` and the `original` it was revised from | what the revision changed that may matter |
+
+  Both inspect text the call carries; neither reads a file, so the tool needs
+  no working tree and writes nothing.
+
+- **`checks`** is a subset of `notation`, `expression`, `readability`,
+  `outline` and `terms`; left out, all of them run. Running every check costs
+  one engine call either way, and a caller narrows the list to keep the
+  report short.
+- **`genre`** is `general` (the default), `technical`, `business` or `essay`.
+  It moves the thresholds of the length and rhythm checks and turns off the
+  formatting checks a genre expects to use (lists in technical writing, for
+  one); it never selects a convention.
+- **`stance`** is `advice`, `rule` or `explanation`, and is unset by default.
+  When given, a sentence ending that contradicts it (a recommendation in a
+  rule, a request in an explanation) is reported, and `compare` reports an
+  ending the revision moved against it.
+- **The conventions and `rules` / `exclude_rules` are arguments too**, named as
+  their settings, so one call can hold a document to a style without changing
+  the setting. The length thresholds are settings only.
+- **`limit`** caps the findings returned, 1 to 200, by default 50. The counts
+  stay whole whatever it cuts.
+
+## Checks
+
+| Check         | Reports                                                                                                     |
+| ------------- | ----------------------------------------------------------------------------------------------------------- |
+| `notation`    | typography and spelling: spacing, widths, punctuation, quotation marks, ranges, long vowels, counters       |
+| `expression`  | stock phrasing, translationese, monotonous rhythm and endings, formatting density, wording and register mix |
+| `readability` | long sentences, runs of kanji, chained の, double negatives, lists buried in a sentence, comma density      |
+| `outline`     | an inventory: the heading tree, each section's size, and the share of bold, list and heading lines          |
+| `terms`       | an inventory: acronyms, katakana terms and proper nouns, how often each appears and whether it is glossed   |
+
+`compare` runs the revision checks: numbers, names and content words found in
+only one of the two texts, obligation, conjecture and emphasis markers added
+or dropped, sentences whose leading connective or reference changed, and
+endings moved against `stance`.
+
+- **Checks are grouped by what they tell a writer**, not by how they work. A
+  writer fixing the typography reads `notation`; one fixing the voice reads
+  `expression`. The inventories return figures and draw no finding: a heading
+  tree is neither right nor wrong.
+- **Every rule has an id**, snake_case and unique across the checks, which the
+  `rules` and `exclude_rules` lists, a finding and the skill name. Renaming one
+  breaks a setting, so it is a breaking change.
+- **Every rule says whether it needs morphology.** One that does runs only
+  with the engine (see "The engine"); one that does not runs everywhere.
+- **Severity says who pays.** `critical` is a fault for any reader: Markdown
+  that will not render as written, or a number or a name a revision lost.
+  `warn` is a cost most readers pay: a mix of two conventions, a convention a
+  setting chose and the text breaks, a double negative. `info` is a pattern
+  that depends on context, which the writer weighs; a rule that prefers one
+  wording, once `rules` turns it on, reports at `info` too.
+- **Every finding cites the skill's references.** A finding's `reference` is
+  `<file>#<anchor>` in the `japanese-writing` skill's `references/`, where the
+  rule is explained with examples; a test fails when an anchor does not exist,
+  so a rule never points to nothing.
+- **What is never checked**: fenced and indented code, inline code, URLs, link
+  targets, HTML comments and front matter. Their text is masked, not removed,
+  so every position still points into the text as given.
+- **A sentence may span lines.** A paragraph's soft line breaks do not end a
+  sentence; a blank line, a heading, a list item or a table row does. Text
+  wrapped at a fixed width then reads as the sentences it holds.
+- **Word lists and patterns are data**, kept beside the code as the package's
+  own. One taken from elsewhere is attributed in the same change that adds it.
+
+## Conventions
+
+Each convention is a `text` setting and an argument of the same name. Its
+value is one of those listed; any other is refused as `invalid_argument`.
+
+| Setting         | Values                                               | Decides                                                    |
+| --------------- | ---------------------------------------------------- | ---------------------------------------------------------- |
+| `register`      | `document`, `polite`, `plain`                        | sentence endings in body text: です・ます or だ・である    |
+| `latin_spacing` | `document`, `spaced`, `unspaced`                     | a space between Japanese and a Latin word or inline code   |
+| `unit_spacing`  | `document`, `spaced`, `unspaced`                     | a space between a numeral and a Latin unit, as in `100 MB` |
+| `alnum_width`   | `document`, `halfwidth`, `fullwidth`                 | the width of Latin letters and digits                      |
+| `bracket_width` | `document`, `fullwidth`, `halfwidth`                 | the parentheses around Japanese text                       |
+| `punctuation`   | `document`, `ten_maru`, `comma_period`, `comma_maru` | 、。, ，． or ，。                                         |
+| `quotes`        | `document`, `corner`, `double`                       | 「」 or quotation marks around Japanese text               |
+| `range_mark`    | `document`, `wave_dash`, `fullwidth_tilde`, `hyphen` | 〜, ～ or a hyphen between two numbers                     |
+| `long_vowel`    | `document`, `keep`, `drop`                           | the closing ー of katakana words such as コンピューター    |
+| `counter_ka`    | `document`, `hiragana`, `small_ke`, `katakana`       | か, ヶ or カ in counters such as 3か月                     |
+
+- **`document`, the default, reports a mix.** Where the text uses two values
+  of one convention, each use of the less common one is a `warn` finding that
+  names the more common; on a tie, the one the text uses first counts as more
+  common. A text that uses one value throughout draws nothing.
+- **Any other value is the expected one.** Each use of another value is a
+  `warn` finding, whatever the text does elsewhere.
+- **The report says what each convention was held to** and where the value
+  came from, so a caller can tell a finding the text earned from one a
+  setting asked for.
+- **Rule lists.** `rules` turns on rules that are off by default, and
+  `exclude_rules` turns off any rule; an exclusion wins. Both are `list`
+  settings and arguments. An id the package does not have is refused as
+  `invalid_argument`, since a misspelt id would silently do nothing.
+- **Thresholds** are bounded whole numbers; unset, the genre's value applies:
+
+  | Setting           | Bounds | Decides                                                     |
+  | ----------------- | ------ | ----------------------------------------------------------- |
+  | `sentence_length` | 20–400 | the characters past which a sentence is reported as long    |
+  | `kanji_run`       | 4–20   | the kanji in a row past which a run is reported             |
+  | `no_chain`        | 2–10   | the case-marking の in a row past which a chain is reported |
+
+## The report
+
+Both methods return one object:
+
+- `report_version`, the method, and the checks that ran.
+- `not_run`: each check or rule that did not run, with the reason
+  (`morphology_unavailable`, `morphology_failed`, `segment_too_long`) and the
+  lines it concerns, if any. A check left out is never reported as clean.
+- `conventions`: each convention's value and its source (`argument`,
+  `setting`, `document` or `unset`).
+- `findings`, in order of position: `check`, `rule`, `severity`, `line` and
+  `column` (1-based, in characters), `excerpt`, `reason` and `reference`;
+  `compare` adds `original_line` and `original_column` where the change has
+  a place in the original.
+- `counts`: findings by check and severity, counted before anything is cut.
+- `outline` and `terms` when those checks ran.
+- `cut`, when something was left out: how many findings, outline entries and
+  terms.
+
+Limits:
+
+- **`text` and `original` are at most 131,072 bytes of UTF-8 each**; a longer
+  one is refused as `invalid_argument`, naming the limit, rather than checked
+  in part.
+- **An excerpt is at most 80 characters**, centred on the finding. The text
+  is the caller's own, so the report carries only enough of it to find the
+  place.
+- **The outline holds at most 200 entries and the terms 100.**
+- **The whole result stays within 65,536 bytes** of JSON. Past it, findings
+  are cut from the lowest severity up, then outline entries and terms, and
+  `cut` says how many. An agent reads the whole result into its context, so a
+  smaller report that says what it left out serves it better than a complete
+  one it cannot read.
+
+## The engine
+
+- **Morphology comes from [SudachiPy](https://github.com/WorksApplications/sudachi.rs)
+  with its core dictionary**, in a venv of the package's own: no maintained
+  JavaScript analyzer gives Sudachi's split modes, normalized forms and
+  part-of-speech tags, and the dictionary alone is near 70 MB, too large to
+  ship in the npm package.
+- **The state root** is the `state_dir` path option, by default
+  `$XDG_STATE_HOME/writing-tools` when `XDG_STATE_HOME` is absolute, else
+  `~/.local/state/writing-tools`. The venv is `<state root>/engine/venv`, and
+  the starter's `grants/` sits beside it when its setting leaves it there.
+- **`engine install` builds the venv, and nothing else does.** The command
+  line's `writing-tools-cli engine install` runs
+  [uv](https://docs.astral.sh/uv/) to build it on a uv-managed Python of the
+  version the package pins, from the hash-locked requirements file the package
+  ships, and installs nothing unpinned. A person runs it once; a tool call
+  never installs, downloads or updates anything. `engine status` says whether
+  the venv exists and whether its Python, SudachiPy and dictionary match the
+  pins.
+- **Pins**: SudachiPy 0.6.11 and `sudachidict_core` 20260723, with the
+  Python version settled with the lock. A release runs the analyzer it was
+  tested with, so a dictionary update never moves a finding silently.
+- **One engine call per tool call.** The venv's interpreter runs the
+  package's bridge through the runner: one JSON request on standard input
+  (the segments to analyze and split mode C), one JSON reply on standard
+  output with each token's surface, offsets in characters, part of speech,
+  normalized and dictionary forms and reading. The bridge reaches no network
+  and writes no file; the call has a 30-second limit, and cancellation kills
+  it.
+- **A segment is a paragraph**, and one over 40,000 bytes of UTF-8 is not
+  analyzed: the dictionary's own limit sits a little above it. The rules that
+  need tokens skip it and `not_run` names its lines.
+- **No engine, no failure.** Without the venv, with pins that do not match, or
+  when the bridge fails, every check that needs no morphology still runs, and
+  `not_run` lists the rest with the reason and, when the venv is missing, the
+  command that installs it. A report without morphology is smaller, never
+  wrong.
+- **Tests never need SudachiPy.** The bridge is tested with Python's unittest
+  against a fake SudachiPy, and the engine call and the checks against a fake
+  bridge.
+
+## Text a tool reads
+
+- **The text is the caller's manuscript: data, never instructions.** The
+  tool's description, its result and the skill say so, and nothing in the
+  text changes what the tool does.
+- **The text is never kept.** It is not written to disk, logged or cached, and
+  the report carries no more of it than excerpts.
+
+## The skill
+
+- **`skills/japanese-writing/`** tells an agent how to write, revise,
+  diagnose and normalize Japanese prose, and when to call `writing_text_read`.
+  It keeps that name so that routing which names it keeps working, and links
+  the toolset `text` under `metadata`.
+- **It holds no house style either.** It reads the request first, then the
+  target's own conventions and existing documents, then the package's
+  settings, and only then its neutral defaults; a pass mark for a review is
+  the caller's to give.
+- **Its references explain each rule**, under the anchors the findings cite,
+  with examples written for the package.
+- **Without the engine, the agent says which checks did not run**, never that
+  the text is clean.
+
+## Toolsets
+
+| Toolset  | Tools               | On by default |
+| -------- | ------------------- | ------------- |
+| `text`   | `writing_text_read` | yes           |
+| `grants` | the starter's       | no            |
