@@ -1,4 +1,4 @@
-import type { ResolvedConventions } from "./conventions"
+import type { ConventionName, ResolvedConventions } from "./conventions"
 import type { TextDocument } from "./model"
 
 /** The checks that exist, in the order the report lists them; the others of `docs/conventions.md` are added with their rules. */
@@ -45,9 +45,28 @@ export type CheckContext = {
   enabled(rule: string): boolean
 }
 
+/**
+ * What a check returns: its findings, and the value each `document`
+ * convention it read settled on, for the report's `conventions`. A check
+ * settles a convention only when it was not given a value.
+ */
+export type CheckResult = {
+  findings: RawFinding[]
+  settled?: Partial<Record<ConventionName, string>>
+}
+
+/** The findings and the settled values of every one of `results`, as one result. */
+export function mergeResults(results: readonly CheckResult[]): CheckResult {
+  const settled: Partial<Record<ConventionName, string>> = Object.assign({}, ...results.map((result) => result.settled))
+  return {
+    findings: results.flatMap((result) => result.findings),
+    ...(Object.keys(settled).length > 0 ? { settled } : {}),
+  }
+}
+
 /** A check: its rules, and the function that finds them in a document. */
 export type CheckSpec = {
   name: CheckName
   rules: readonly RuleSpec[]
-  run(ctx: CheckContext): RawFinding[]
+  run(ctx: CheckContext): CheckResult
 }

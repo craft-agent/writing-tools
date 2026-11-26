@@ -15,7 +15,7 @@ function recording(): { seen: CheckContext[]; checks: CheckSpec[] } {
     rules,
     run(ctx) {
       seen.push(ctx)
-      return rules.filter((item) => ctx.enabled(item.id)).map((item) => found(item.id, offset))
+      return { findings: rules.filter((item) => ctx.enabled(item.id)).map((item) => found(item.id, offset)) }
     },
   })
   return {
@@ -67,6 +67,18 @@ describe("inspect", () => {
     const { checks, seen } = recording()
     expect(() => inspect(readDocument(CALL.text), { ...CALL, rules: ["nope"] }, {}, checks)).toThrow("nope")
     expect(seen).toEqual([])
+  })
+
+  test("reports what a check settled as the document's, unless a value was given", () => {
+    const check: CheckSpec = {
+      name: "notation",
+      rules: [rule("n_rule")],
+      run: () => ({ findings: [], settled: { latin_spacing: "spaced", quotes: "double" } }),
+    }
+    const { conventions } = inspect(readDocument(CALL.text), { ...CALL, quotes: "corner" }, {}, [check])
+    expect(conventions.latin_spacing).toEqual({ value: "spaced", source: "document" })
+    expect(conventions.quotes).toEqual({ value: "corner", source: "argument" })
+    expect(conventions.register).toEqual({ value: null, source: "unset" })
   })
 
   test("returns the default number of findings when `limit` is left out", () => {

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { CONVENTION_NAMES, CONVENTIONS, resolveConventions, type ResolvedConvention } from "./conventions"
+import { CONVENTION_NAMES, CONVENTIONS, resolveConventions, withSettled, type ResolvedConvention } from "./conventions"
 
 const UNSET: ResolvedConvention = { value: null, source: "unset" }
 
@@ -48,5 +48,22 @@ describe("resolveConventions", () => {
     const first = resolveConventions({}, {})
     first.register.value = "polite"
     expect(resolveConventions({}, {}).register).toEqual(UNSET)
+  })
+})
+
+describe("withSettled", () => {
+  test("names the document as the source of a value settled for an unset convention", () => {
+    const settled = withSettled(resolveConventions({}, {}), { register: "polite" })
+    expect(settled.register).toEqual({ value: "polite", source: "document" })
+    expect(settled.quotes).toEqual(UNSET)
+  })
+
+  test("keeps a convention that was given a value", () => {
+    const settled = withSettled(resolveConventions({ register: "plain" }, { quotes: "corner" }), {
+      register: "polite",
+      quotes: "double",
+    })
+    expect(settled.register).toEqual({ value: "plain", source: "argument" })
+    expect(settled.quotes).toEqual({ value: "corner", source: "setting" })
   })
 })

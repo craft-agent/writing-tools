@@ -87,10 +87,10 @@ function fromValue(value: unknown, source: "argument" | "setting"): ResolvedConv
 /**
  * Resolves each convention: the call's argument first, then the setting. A
  * value of `document`, given or defaulted, holds the text to what it does
- * itself, which is not read yet, so it resolves to `{ value: null, source:
+ * itself, which is not read here, so it resolves to `{ value: null, source:
  * "unset" }`; a given `document` still wins over a setting. The report's
- * `document` source is for the value a text's own majority settles, which a
- * later step fills in.
+ * `document` source is for the value a text's own majority settles, which
+ * {@link withSettled} fills in after the checks ran.
  */
 export function resolveConventions(args: ConventionArguments, options: ToolOptions = {}): ResolvedConventions {
   return Object.fromEntries(
@@ -98,5 +98,24 @@ export function resolveConventions(args: ConventionArguments, options: ToolOptio
       name,
       fromValue(args[name], "argument") ?? fromValue(options[name], "setting") ?? unset(),
     ]),
+  ) as ResolvedConventions
+}
+
+/**
+ * The conventions with the values the text's own majority settled: each
+ * convention that was held to nothing and has a settled value becomes
+ * `{ value, source: "document" }`. A convention that was given a value stays
+ * as it is, and one the text never used stays unset.
+ */
+export function withSettled(
+  conventions: ResolvedConventions,
+  settled: Partial<Record<ConventionName, string>>,
+): ResolvedConventions {
+  return Object.fromEntries(
+    CONVENTION_NAMES.map((name) => {
+      const value = settled[name]
+      const held = conventions[name]
+      return [name, held.value === null && value !== undefined ? { value, source: "document" } : held]
+    }),
   ) as ResolvedConventions
 }

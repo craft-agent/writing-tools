@@ -1,10 +1,10 @@
 import type { ToolOptions } from "../tool"
-import { resolveConventions } from "./conventions"
+import { resolveConventions, withSettled } from "./conventions"
 import { DEFAULT_LIMIT } from "./limits"
 import type { TextDocument } from "./model"
 import { CHECK_SPECS } from "./registry"
 import { buildReport } from "./report"
-import { CHECKS, type CheckSpec, type RawFinding } from "./rules"
+import { CHECKS, mergeResults, type CheckSpec } from "./rules"
 import type { TextReadInput, TextReadOutput } from "./schemas"
 import { selectRules } from "./selection"
 
@@ -26,13 +26,13 @@ export function inspect(
   const ran = CHECKS.filter((name) => requested.has(name)).flatMap((name) =>
     checks.filter((spec) => spec.name === name),
   )
-  const found: RawFinding[] = ran.flatMap((spec) => spec.run({ doc, conventions, enabled }))
+  const { findings, settled = {} } = mergeResults(ran.map((spec) => spec.run({ doc, conventions, enabled })))
   return buildReport({
     doc,
     checks: ran.map((spec) => spec.name),
-    conventions,
+    conventions: withSettled(conventions, settled),
     notRun: [],
-    found,
+    found: findings,
     specs: checks,
     limit: args.limit ?? DEFAULT_LIMIT,
   })

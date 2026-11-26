@@ -15,7 +15,7 @@ export function rule(id: string, extra: Partial<RuleSpec> = {}): RuleSpec {
 
 /** A check that finds what `found` says, whatever the document. */
 export function fakeCheck(name: CheckName, rules: readonly RuleSpec[], found: readonly RawFinding[] = []): CheckSpec {
-  return { name, rules, run: () => [...found] }
+  return { name, rules, run: () => ({ findings: [...found] }) }
 }
 
 /** A finding of `rule` over `[start, end)`, with a reason naming the rule. */
