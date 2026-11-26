@@ -15,9 +15,10 @@ SKILL_PREFIX = "writing-"
 TOOLSET_EMOJI: dict[str, str] = {}
 
 #: The settings the tools themselves read: each snake_case name and a type (``text``, ``boolean``, ``number``,
-#: ``list``, ``path`` or ``paths``) or a dict with ``type`` and optional bounds (``integer``, ``min``, ``max``),
-#: as in ``src/project.ts``. Write OPTIONS on one line with double quotes. A setting ``a_b`` becomes ``--a-b``.
-OPTIONS: dict[str, str | dict[str, object]] = {"state_dir": "path"}
+#: ``list``, ``path`` or ``paths``) or a dict with ``type`` and optional bounds (``integer``, ``min``, ``max``,
+#: ``values``), as in ``src/project.ts``. Write OPTIONS on one line with double quotes. A setting ``a_b`` becomes
+#: ``--a-b``.
+OPTIONS: dict[str, str | dict[str, object]] = {"state_dir": "path", "register": {"type": "text", "values": ["document", "polite", "plain"]}, "latin_spacing": {"type": "text", "values": ["document", "spaced", "unspaced"]}, "unit_spacing": {"type": "text", "values": ["document", "spaced", "unspaced"]}, "alnum_width": {"type": "text", "values": ["document", "halfwidth", "fullwidth"]}, "bracket_width": {"type": "text", "values": ["document", "fullwidth", "halfwidth"]}, "punctuation": {"type": "text", "values": ["document", "ten_maru", "comma_period", "comma_maru"]}, "quotes": {"type": "text", "values": ["document", "corner", "double"]}, "range_mark": {"type": "text", "values": ["document", "wave_dash", "fullwidth_tilde", "hyphen"]}, "long_vowel": {"type": "text", "values": ["document", "keep", "drop"]}, "counter_ka": {"type": "text", "values": ["document", "hiragana", "small_ke", "katakana"]}, "rules": "list", "exclude_rules": "list"}
 
 __all__ = [
     "CLI_NAME",
