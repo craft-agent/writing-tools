@@ -102,5 +102,11 @@ export const SENTENCE_MARKS: readonly string[] = [...COMMAS, ...PERIODS]
 export const OPENING_BRACKETS = "「『（【〔〈《"
 export const CLOSING_BRACKETS = "」』）】〕〉》"
 
+/** The digits of both widths, to be placed inside a character class. */
+export const DIGITS = "0-9０-９"
+
 /** A digit, of either width. */
-export const DIGIT = "[0-9０-９]"
+export const DIGIT = `[${DIGITS}]`
+
+/** One katakana character: the letters, the long vowel mark and the iteration marks, but not the middle dot ・. */
+export const KATAKANA = "[\\u30A1-\\u30FA\\u30FC-\\u30FF]"

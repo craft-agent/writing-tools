@@ -7,7 +7,7 @@ import {
   IS_SPACE,
   IS_TRANSPARENT,
 } from "./chars"
-import type { Occurrence } from "./convention"
+import { occurrenceOf, type Occurrence } from "./convention"
 import type { LineView } from "./lines"
 
 /** How many characters beside a halfwidth run are searched for Japanese text; spaces and markers are not counted. */
@@ -29,12 +29,6 @@ function japaneseNear(text: string, from: number, step: 1 | -1): boolean {
     seen++
   }
   return false
-}
-
-/** The occurrence of `value` that a match of a line makes, `start` being where the line's view starts in the text. */
-function occurrenceOf(value: string, start: number, match: RegExpExecArray): Occurrence {
-  const at = start + match.index
-  return { value, start: at, end: at + match[0].length }
 }
 
 function quoted(value: string): string {

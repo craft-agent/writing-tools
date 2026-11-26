@@ -4,6 +4,12 @@ import type { CheckContext, CheckResult, RawFinding } from "../rules"
 /** One use of a convention's value in the text: offsets into `doc.text`, `end` exclusive. */
 export type Occurrence = { value: string; start: number; end: number }
 
+/** The occurrence of `value` that a match of a line makes, `start` being where the line's view starts in the text. */
+export function occurrenceOf(value: string, start: number, match: RegExpExecArray): Occurrence {
+  const at = start + match.index
+  return { value, start: at, end: at + match[0].length }
+}
+
 /** How often a value occurs. */
 type Count = { value: string; count: number }
 
