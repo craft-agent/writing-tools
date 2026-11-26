@@ -1,11 +1,11 @@
 {
-  "name": "agent-tool-starter",
+  "name": "writing-tools",
   "interface": {
-    "displayName": "craftsamo"
+    "displayName": "Craft Agent"
   },
   "plugins": [
     {
-      "name": "agent-tool-starter",
+      "name": "writing-tools",
       "source": {
         "source": "local",
         "path": "./"

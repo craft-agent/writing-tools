@@ -1,17 +1,16 @@
 {
-  "name": "@craftsamo/agent-tool-starter",
-  "version": "0.6.0",
-  "private": true,
-  "description": "A starter for tool packages that coding agents call: one implementation delivered to every harness.",
+  "name": "@craftsamo/writing-tools",
+  "version": "0.0.0",
+  "description": "Japanese writing tools for coding agents: a neutral inspector and the skill that uses it.",
   "author": "craftsamo",
   "license": "LicenseRef-AGPL-3.0-Commons-Clause",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/craftsamo/agent-tool-starter.git"
+    "url": "git+https://github.com/craft-agent/writing-tools.git"
   },
-  "homepage": "https://github.com/craftsamo/agent-tool-starter#readme",
-  "bugs": "https://github.com/craftsamo/agent-tool-starter/issues",
-  "mcpName": "io.github.craftsamo/agent-tool-starter",
+  "homepage": "https://github.com/craft-agent/writing-tools#readme",
+  "bugs": "https://github.com/craft-agent/writing-tools/issues",
+  "mcpName": "io.github.craft-agent/writing-tools",
   "type": "module",
   "main": "dist/opencode.js",
   "exports": {
@@ -19,8 +18,8 @@
     "./opencode": "./dist/opencode.js"
   },
   "bin": {
-    "agent-tool-starter": "dist/mcp.js",
-    "agent-tool-starter-cli": "dist/cli.js"
+    "writing-tools": "dist/mcp.js",
+    "writing-tools-cli": "dist/cli.js"
   },
   "files": [
     "dist",
@@ -33,7 +32,7 @@
     "mcp_config.json",
     "plugin.yaml",
     "__init__.py",
-    "src/hermes/agent_tool_starter_hermes",
+    "src/hermes/writing_tools_hermes",
     "!**/__pycache__",
     "!**/*.pyc"
   ],
@@ -50,7 +49,6 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.core.json",
-    "setup": "node scripts/setup/main.mjs",
     "prepare": "node -e \"const fs=require('fs'),{execFileSync}=require('child_process');if(fs.existsSync('.git')){if(fs.existsSync('node_modules/husky'))execFileSync('husky',{stdio:'inherit'});if(fs.existsSync('node_modules/@craftsamo/repo-kit'))execFileSync('repo-kit',['agents','sync'],{stdio:'inherit'})}\""
   },
   "devDependencies": {

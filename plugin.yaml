@@ -1,14 +1,12 @@
-name: agent-tool-starter
-version: 0.6.0
-description: "A starter for tool packages that coding agents call: one implementation delivered to every harness."
+name: writing-tools
+version: 0.0.0
+description: "Japanese writing tools for coding agents: a neutral inspector and the skill that uses it."
 manifest_version: 1
 requires_hermes: ">=0.22"
 provides_tools:
-  - example_grant_create
-  - example_grant_read
-  - example_grant_revoke
-  - example_note_create
-  - example_note_read
+  - writing_grant_create
+  - writing_grant_read
+  - writing_grant_revoke
 provides_hooks:
   - pre_tool_call
 config_schema:
