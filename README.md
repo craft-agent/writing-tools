@@ -1,71 +1,6 @@
-# agent-tool-starter
+# writing-tools
 
-A starter for tool packages that coding agents call: one implementation delivered to every harness.
-
-<!-- starter -->
-
-## Using this starter
-
-This repository is a GitHub template. A project made from it implements its
-tools once in `src/core/`, and the skeleton delivers them to each harness
-below. Everything that names the package (its npm name, plugin and server
-names, tool prefix, setting variables, Hermes package and manifests) is
-renamed in one step.
-
-1. On GitHub, choose **Use this template** and create the repository, then
-   clone it.
-2. Install, then run the setup once, from the clone:
-
-   ```sh
-   corepack enable
-   pnpm install
-   pnpm run setup -- --prefix <prefix> --description "<one line>" --dry-run
-   pnpm run setup -- --prefix <prefix> --description "<one line>"
-   ```
-
-   The name and owner default to those of the clone's `origin`. The setup
-   shows every change and asks before writing; `--dry-run` writes nothing.
-
-3. Rebuild and check, then commit the result:
-
-   ```sh
-   pnpm install
-   pnpm run build && pnpm run manifests
-   pnpm run typecheck && pnpm test && pnpm run smoke
-   ```
-
-| Option           | Default                         | Meaning                                                     |
-| ---------------- | ------------------------------- | ----------------------------------------------------------- |
-| `--prefix`       | (required)                      | the tool ID prefix, `[a-z][a-z0-9]*`: `git` gives `git_*`   |
-| `--description`  | (required)                      | the one-line description of the package and its plugins     |
-| `--name`         | the `origin` repository's name  | the package, plugin, server and program name, in kebab-case |
-| `--owner`        | the `origin` repository's owner | the GitHub owner the URLs and the registry name use         |
-| `--scope`        | `@<owner>`                      | the npm scope                                               |
-| `--marketplace`  | `<name>`                        | the plugin marketplace name of Claude Code and Codex        |
-| `--author`       | `<owner>`                       | the author in the manifests and the license holder          |
-| `--author-url`   | `https://github.com/<owner>`    | the author URL in the plugin manifests                      |
-| `--publisher`    | `<author>`                      | the marketplace publisher in the plugin catalogs            |
-| `--keep-example` |                                 | keep the example notes tools, renamed to the prefix         |
-| `--dry-run`      |                                 | show the changes without writing                            |
-| `--yes`          |                                 | write without asking                                        |
-
-Claude Code and Codex tell marketplaces apart by name, so each package needs
-its own `--marketplace` name, even beside another package of the same owner;
-the default, the package name, gives it one. The setup allows only letters,
-digits, hyphens and underscores, which both accept, and refuses the names either
-one reserves. Claude Code may also refuse a name containing `claude` or
-`anthropic`, as one that impersonates its own marketplaces.
-
-The setup removes the example notes tools unless `--keep-example` is given,
-drops `"private": true` so the package can be published, starts its version
-at `0.0.0` whatever the starter's release was, and deletes itself
-and this section. It also writes `opencode.jsonc`, whose `starter`
-reference lets an agent in OpenCode read this repository beside the
-project; add the project's own references there. It refuses to run on a
-working tree with uncommitted changes. To take later improvements of the
-starter, add it as a remote and merge its default branch.
-
-<!-- /starter -->
+Japanese writing tools for coding agents: a neutral inspector and the skill that uses it.
 
 | Harness        | Delivery                                       | Pinned by                      |
 | -------------- | ---------------------------------------------- | ------------------------------ |
@@ -90,7 +25,7 @@ commands below, `<version>` is a release's version (`1.2.3`) and `<sha>` is the
 commit its tag names:
 
 ```sh
-gh api repos/craftsamo/agent-tool-starter/commits/v<version> --jq .sha
+gh api repos/craft-agent/writing-tools/commits/v<version> --jq .sha
 ```
 
 ### OpenCode
@@ -99,8 +34,8 @@ OpenCode V2 takes the package and its options in `opencode.json`:
 
 ```json
 {
-  "plugins": [{ "package": "@craftsamo/agent-tool-starter@<version>", "options": { "read_only": false } }],
-  "permissions": [{ "action": "example_*", "resource": "*", "effect": "ask" }]
+  "plugins": [{ "package": "@craftsamo/writing-tools@<version>", "options": { "read_only": false } }],
+  "permissions": [{ "action": "writing_*", "resource": "*", "effect": "ask" }]
 }
 ```
 
@@ -108,42 +43,42 @@ OpenCode V1 takes the package as a string, or as a pair with its options:
 
 ```json
 {
-  "plugin": [["@craftsamo/agent-tool-starter@<version>", { "read_only": false }]],
-  "permission": { "example_*": "ask" }
+  "plugin": [["@craftsamo/writing-tools@<version>", { "read_only": false }]],
+  "permission": { "writing_*": "ask" }
 }
 ```
 
 OpenCode allows any action no rule names, so the plugin's request is granted
-silently unless a rule says `ask`. Read tools never ask, so the `example_*` glob
+silently unless a rule says `ask`. Read tools never ask, so the `writing_*` glob
 is safe.
 
 V1 registers no skills. Unpack the package and copy its `skills/*` folders into
 `~/.config/opencode/skills/`:
 
 ```sh
-npm pack @craftsamo/agent-tool-starter@<version>
-tar -xzf craftsamo-agent-tool-starter-<version>.tgz
+npm pack @craftsamo/writing-tools@<version>
+tar -xzf craftsamo-writing-tools-<version>.tgz
 mkdir -p ~/.config/opencode/skills
 cp -r package/skills/* ~/.config/opencode/skills/
-rm -rf package craftsamo-agent-tool-starter-<version>.tgz
+rm -rf package craftsamo-writing-tools-<version>.tgz
 ```
 
 ### Claude Code
 
 ```sh
-claude plugin marketplace add craftsamo/agent-tool-starter#v<version>
-claude plugin install agent-tool-starter@agent-tool-starter
+claude plugin marketplace add craft-agent/writing-tools#v<version>
+claude plugin install writing-tools@writing-tools
 ```
 
 ### Codex
 
 ```sh
-codex plugin marketplace add craftsamo/agent-tool-starter --ref v<version>
-codex plugin add agent-tool-starter@agent-tool-starter
+codex plugin marketplace add craft-agent/writing-tools --ref v<version>
+codex plugin add writing-tools@writing-tools
 ```
 
 Codex turns `-` into `_` in server names, so it shows the tools as
-`mcp__agent_tool_starter__example_*`. It starts the MCP server in the plugin's
+`mcp__writing_tools__writing_*`. It starts the MCP server in the plugin's
 install directory and passes no roots, so the server takes each call's directory
 from what Codex sends with the call: its sandbox state, which the server asks
 for, else the one workspace it names.
@@ -157,7 +92,7 @@ every tool not marked read-only. A user's
 ### Grok Build
 
 ```sh
-grok plugin install craftsamo/agent-tool-starter@v<version> --trust
+grok plugin install craft-agent/writing-tools@v<version> --trust
 ```
 
 Grok starts the MCP server in the session's working directory.
@@ -166,10 +101,10 @@ Grok starts the MCP server in the session's working directory.
 
 Install from the tree of the release tag, never from the default branch, which
 has no built `dist/`; Antigravity clones the tag into
-`~/.gemini/config/plugins/agent-tool-starter`.
+`~/.gemini/config/plugins/writing-tools`.
 
 ```sh
-agy plugin install https://github.com/craftsamo/agent-tool-starter/tree/v<version>
+agy plugin install https://github.com/craft-agent/writing-tools/tree/v<version>
 ```
 
 ### Hermes Agent
@@ -177,8 +112,8 @@ agy plugin install https://github.com/craftsamo/agent-tool-starter/tree/v<versio
 Hermes installs a commit, not a tag, and the plugin installs disabled:
 
 ```sh
-hermes plugins install craftsamo/agent-tool-starter --ref <sha>
-hermes plugins enable agent-tool-starter
+hermes plugins install craft-agent/writing-tools --ref <sha>
+hermes plugins enable writing-tools
 ```
 
 If a Hermes gateway is already running, restart it (`hermes gateway restart`) to
@@ -199,7 +134,7 @@ naming the plugin that is missing. Reads still run.
 ```yaml
 plugins:
   entries:
-    agent-tool-starter:
+    writing-tools:
       settings:
         require_plugins: [write-guard]
 ```
@@ -211,9 +146,9 @@ Add the server to the host's MCP configuration. Flags go in `args`:
 ```json
 {
   "mcpServers": {
-    "agent-tool-starter": {
+    "writing-tools": {
       "command": "npx",
-      "args": ["-y", "@craftsamo/agent-tool-starter@<version>", "--read-only"]
+      "args": ["-y", "@craftsamo/writing-tools@<version>", "--read-only"]
     }
   }
 }
@@ -232,34 +167,15 @@ settings only to the MCP server, so they list every skill whatever the
 settings select. OpenCode V1 registers no skills, and its copied skills are
 all listed too.
 
-<!-- example -->
-
-### Notes (`notes`)
-
-An example toolset: Markdown notes in the working tree's `notes/` folder,
-shown to make every part of the tool contract visible with no outside program.
-
-| Tool                  | What it does                                                | Class |
-| --------------------- | ----------------------------------------------------------- | ----- |
-| `example_note_read`   | `view` one note, or `list` the notes with their sizes       | read  |
-| `example_note_create` | create `notes/<name>.md`; never overwrites an existing note | add   |
-
-The skill is [`example-notes`](skills/example-notes/SKILL.md), shown as
-`agent-tool-starter:example-notes` in Claude Code and
-`agent-tool-starter:notes` in Hermes. A write names the note's absolute path
-as its target, so an "always" answer covers that note only.
-
-<!-- /example -->
-
 ### Grants (`grants`)
 
 Off by default. Delegates bounded writes for jobs where no person can answer.
 
 | Tool                   | What it does                                             | Class          |
 | ---------------------- | -------------------------------------------------------- | -------------- |
-| `example_grant_create` | ask a person to delegate one tool's writes within limits | administrative |
-| `example_grant_read`   | list grants and their use, or read the usage log         | read           |
-| `example_grant_revoke` | remove a grant so no more calls run under it             | overwrite      |
+| `writing_grant_create` | ask a person to delegate one tool's writes within limits | administrative |
+| `writing_grant_read`   | list grants and their use, or read the usage log         | read           |
+| `writing_grant_revoke` | remove a grant so no more calls run under it             | overwrite      |
 
 Every write tool can be granted for its targets, calls per hour and expiry.
 A tool adds what a grant can also limit by declaring `bounds` and giving
@@ -267,12 +183,6 @@ A tool adds what a grant can also limit by declaring `bounds` and giving
 (`allow`), values from a list (`oneOf`) or the paths a value must sit under
 (`prefix`); see the
 [conventions](docs/conventions.md#writes-no-one-is-there-to-approve).
-
-<!-- example -->
-
-The example `example_note_create` bounds `text_length`.
-
-<!-- /example -->
 
 ## Adding a tool
 
@@ -320,30 +230,24 @@ line, with double quotes and Python's `True` for `integer`:
 OPTIONS: dict[str, str | dict[str, object]] = {"notes_dir": "path", "note_limit": {"type": "number", "integer": True, "min": 1, "max": 50}}
 ```
 
-<!-- example -->
-
-`src/core/example/` is a worked example of all of them.
-
-<!-- /example -->
-
 ## Reads and writes
 
 Every read tool is named `<prefix>_<domain>_read`. Reads can run unasked;
 writes are confirmed by the harness.
 
-| Harness     | Reads without asking                                                                                                     |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------ |
-| OpenCode    | always; the plugin asks only before a write                                                                              |
-| Claude Code | the rule `mcp__plugin_agent-tool-starter_agent-tool-starter__*_read` in `permissions.allow` of `~/.claude/settings.json` |
-| Codex       | always; Codex runs tools that declare `readOnlyHint` unasked, as the read tools do                                       |
-| Grok Build  | `grok --allow 'MCPTool(agent-tool-starter__*_read)' --allow 'MCPTool(example_*_read)'` (both rules; see below)           |
-| Antigravity | the rule `mcp(agent-tool-starter_agent-tool-starter/<tool id>)` in `permissions.allow`, one for each read tool           |
-| Hermes      | always; the plugin asks only before a write                                                                              |
+| Harness     | Reads without asking                                                                                           |
+| ----------- | -------------------------------------------------------------------------------------------------------------- |
+| OpenCode    | always; the plugin asks only before a write                                                                    |
+| Claude Code | the rule `mcp__plugin_writing-tools_writing-tools__*_read` in `permissions.allow` of `~/.claude/settings.json` |
+| Codex       | always; Codex runs tools that declare `readOnlyHint` unasked, as the read tools do                             |
+| Grok Build  | `grok --allow 'MCPTool(writing-tools__*_read)' --allow 'MCPTool(writing_*_read)'` (both rules; see below)      |
+| Antigravity | the rule `mcp(writing-tools_writing-tools/<tool id>)` in `permissions.allow`, one for each read tool           |
+| Hermes      | always; the plugin asks only before a write                                                                    |
 
 Where a write is asked about, and where it is not:
 
 - **OpenCode** grants any action no rule names, so a write runs unasked unless
-  a rule asks for it: add the `example_*` rule shown under [OpenCode](#opencode).
+  a rule asks for it: add the `writing_*` rule shown under [OpenCode](#opencode).
 - **Codex** asks before every write because of the plugin's approval mode.
   Under `codex exec` it refuses with "MCP tool call requires approval, but
   approval policy is never". For bounded jobs, see
@@ -356,7 +260,7 @@ Where a write is asked about, and where it is not:
   that first call. The second rule matches the short name; a write still
   matches neither.
 - **Antigravity** asks before any MCP tool no rule allows, reads included, and
-  names the plugin's server `agent-tool-starter_agent-tool-starter` (plugin,
+  names the plugin's server `writing-tools_writing-tools` (plugin,
   then server). `agy -p` refuses a tool it cannot ask about.
 - **Hermes** `hermes chat -q` refuses a write it cannot ask about; `hermes -z`
   and `--yolo` skip approval, so writes then run unasked. For bounded jobs, see
@@ -380,34 +284,34 @@ contract.
 
 1. In a session where a person answers, supply the key described under
    [Settings](#settings), turn on the `grants` toolset alongside the job's
-   toolset, and ask the agent to delegate. It calls `example_grant_create`;
+   toolset, and ask the agent to delegate. It calls `writing_grant_create`;
    the prompt shows the tool, targets, rate, days, every bound the tool
    declares (`no limit` for one left out) and the reason.
    Approve once.
 2. Set the same key and `unattended` for the job only, for example
-   `AGENT_TOOL_STARTER_UNATTENDED=true`. Otherwise grants are not checked.
+   `WRITING_TOOLS_UNATTENDED=true`. Otherwise grants are not checked.
 3. Let the host allow the write tool in that run, as below. The grant still
    bounds each call.
-4. Revoke with `example_grant_revoke`, or list grants and their use with
-   `example_grant_read`.
+4. Revoke with `writing_grant_revoke`, or list grants and their use with
+   `writing_grant_read`.
 
 What lets a write reach the package when no one can answer:
 
 - **OpenCode** `opencode run` rejects every question unless an allow rule
-  names the tool (`"permission": { "example_note_create": "allow" }`) or the
+  names the tool (`"permission": { "writing_note_create": "allow" }`) or the
   run starts with `--auto`.
 - **Claude Code** `claude -p` needs the tool in `--allowedTools`, as
-  `mcp__plugin_agent-tool-starter_agent-tool-starter__example_note_create`.
+  `mcp__plugin_writing-tools_writing-tools__writing_note_create`.
 - **Codex** `codex exec` needs `approval_mode = "approve"` for that tool under
   the plugin's MCP server in `config.toml`
   (`[mcp_servers.<server>.tools.<tool>]`), since the plugin's default asks
   before every write.
 - **Grok Build** `grok -p` needs both allow rules:
-  `--allow 'MCPTool(agent-tool-starter__example_note_create)'` and
-  `--allow 'MCPTool(example_note_create)'`, for the qualified and short names
+  `--allow 'MCPTool(writing-tools__writing_note_create)'` and
+  `--allow 'MCPTool(writing_note_create)'`, for the qualified and short names
   described under [Reads and writes](#reads-and-writes).
 - **Antigravity** `agy -p` needs
-  `mcp(agent-tool-starter_agent-tool-starter/example_note_create)` in
+  `mcp(writing-tools_writing-tools/writing_note_create)` in
   `permissions.allow`.
 - **Hermes** `hermes chat -q` denies by `approvals.single_query_mode` unless
   allowed. `-z` and `--yolo` skip approvals and run the write; the grant is
@@ -416,7 +320,7 @@ What lets a write reach the package when no one can answer:
 ### Limits
 
 - A run with every approval skipped (Hermes `-z` or `--yolo`, an
-  always-approve mode, an explicit `allow` for `example_grant_create`, or a
+  always-approve mode, an explicit `allow` for `writing_grant_create`, or a
   global OpenCode V1 `allow`) shows no prompt. A grant created there is not a
   person's answer, and it can be as wide as any target, no bound and no rate
   for 90 days: create grants only where the harness asks.
@@ -424,7 +328,7 @@ What lets a write reach the package when no one can answer:
   Expiry, at most 90 days, bounds what it can restore.
 - Anyone who can read the key can sign grants. Keep it where the agent's
   tools cannot read it.
-- The OpenCode V2 plugin forces a question for `example_grant_create`
+- The OpenCode V2 plugin forces a question for `writing_grant_create`
   through a hook; only hosts that offer that hook run it.
 
 The OpenCode V2 service and Hermes gateway keep the environment they started
@@ -435,20 +339,20 @@ with; see [Settings](#settings) before changing the job's variables.
 Every entry point takes the same settings. A flag wins over its environment
 variable, and an option or setting wins over the variable too.
 
-| Setting           | Flag              | Variable                           | Meaning                                                                                                                                   |
-| ----------------- | ----------------- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `toolsets`        | `--toolsets`      | `AGENT_TOOL_STARTER_TOOLSETS`      | the toolsets that are on, or `all`; default those `src/project.ts` names                                                                  |
-| `read_only`       | `--read-only`     | `AGENT_TOOL_STARTER_READ_ONLY`     | registers no tool that writes; wins over every other setting                                                                              |
-| `unattended`      | `--unattended`    | `AGENT_TOOL_STARTER_UNATTENDED`    | no person can answer: a write runs only under a grant that covers it; off by default                                                      |
-| `grants_dir`      | `--grants-dir`    | `AGENT_TOOL_STARTER_GRANTS_DIR`    | where grants and their use are kept; default `$XDG_STATE_HOME/agent-tool-starter/grants`, else `~/.local/state/agent-tool-starter/grants` |
-| `tools`           | `--tools`         | `AGENT_TOOL_STARTER_TOOLS`         | single tools to add by ID, whatever their toolset                                                                                         |
-| `exclude_tools`   | `--exclude-tools` | `AGENT_TOOL_STARTER_EXCLUDE_TOOLS` | single tools to remove by ID; wins over `tools` and `toolsets`                                                                            |
-| `confirm`         | `--confirm`       | `AGENT_TOOL_STARTER_CONFIRM`       | MCP server only: `harness` (default) or `elicitation`, as the conventions say                                                             |
-| `language`        | `--language`      | `AGENT_TOOL_STARTER_LANGUAGE`      | native plugins only: the approval prompt's language, such as `ja`                                                                         |
-| `emoji`           | —                 | —                                  | Hermes only: the emoji shown beside each toolset, by toolset name (`""` for none)                                                         |
-| `require_plugins` | —                 | —                                  | Hermes only: the plugins that must be loaded; while one is not, every write is refused before it is approved                              |
+| Setting           | Flag              | Variable                      | Meaning                                                                                                                         |
+| ----------------- | ----------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `toolsets`        | `--toolsets`      | `WRITING_TOOLS_TOOLSETS`      | the toolsets that are on, or `all`; default those `src/project.ts` names                                                        |
+| `read_only`       | `--read-only`     | `WRITING_TOOLS_READ_ONLY`     | registers no tool that writes; wins over every other setting                                                                    |
+| `unattended`      | `--unattended`    | `WRITING_TOOLS_UNATTENDED`    | no person can answer: a write runs only under a grant that covers it; off by default                                            |
+| `grants_dir`      | `--grants-dir`    | `WRITING_TOOLS_GRANTS_DIR`    | where grants and their use are kept; default `$XDG_STATE_HOME/writing-tools/grants`, else `~/.local/state/writing-tools/grants` |
+| `tools`           | `--tools`         | `WRITING_TOOLS_TOOLS`         | single tools to add by ID, whatever their toolset                                                                               |
+| `exclude_tools`   | `--exclude-tools` | `WRITING_TOOLS_EXCLUDE_TOOLS` | single tools to remove by ID; wins over `tools` and `toolsets`                                                                  |
+| `confirm`         | `--confirm`       | `WRITING_TOOLS_CONFIRM`       | MCP server only: `harness` (default) or `elicitation`, as the conventions say                                                   |
+| `language`        | `--language`      | `WRITING_TOOLS_LANGUAGE`      | native plugins only: the approval prompt's language, such as `ja`                                                               |
+| `emoji`           | —                 | —                             | Hermes only: the emoji shown beside each toolset, by toolset name (`""` for none)                                               |
+| `require_plugins` | —                 | —                             | Hermes only: the plugins that must be loaded; while one is not, every write is refused before it is approved                    |
 
-`AGENT_TOOL_STARTER_GRANT_KEY` is a variable only, never a flag or a plugin
+`WRITING_TOOLS_GRANT_KEY` is a variable only, never a flag or a plugin
 option. Use at least 32 characters, for example from `openssl rand -hex 32`,
 stored where the host keeps secrets. Without it no write runs while
 unattended and no grant can be created. Codex forwards it alongside the
@@ -473,13 +377,13 @@ bounds. Where each harness reads them:
   variable set where `opencode run` starts has no effect until the service is
   restarted in that environment (`opencode service restart`). V1 runs plugins
   in its own process.
-- **Hermes** takes `plugins.entries.agent-tool-starter.settings` in
+- **Hermes** takes `plugins.entries.writing-tools.settings` in
   `config.yaml`:
 
   ```yaml
   plugins:
     entries:
-      agent-tool-starter:
+      writing-tools:
         settings:
           read_only: false
           exclude_tools: []
@@ -506,10 +410,10 @@ bounds. Where each harness reads them:
   fixed values.
 
   ```toml
-  [mcp_servers.agent-tool-starter]
+  [mcp_servers.writing-tools]
   command = "npx"
-  args = ["-y", "@craftsamo/agent-tool-starter@<version>", "--read-only"]
-  env_vars = ["AGENT_TOOL_STARTER_TOOLSETS"]
+  args = ["-y", "@craftsamo/writing-tools@<version>", "--read-only"]
+  env_vars = ["WRITING_TOOLS_TOOLSETS"]
   ```
 
 ## Layout
@@ -522,10 +426,10 @@ bounds. Where each harness reads them:
 - `src/words.ts` — the translations of the tools' words, per language, which
   the native plugins use in their approval prompts.
 - `src/mcp/` — the MCP server, built to `dist/mcp.js` and run by
-  `agent-tool-starter`.
+  `writing-tools`.
 - `src/opencode/` — the OpenCode plugin, built to `dist/opencode.js`.
 - `src/cli/` — the command line the Hermes plugin calls, built to `dist/cli.js`
-  and run by `agent-tool-starter-cli`.
+  and run by `writing-tools-cli`.
 - `src/hermes/`, `plugin.yaml` and `__init__.py` — the Hermes plugin.
 - `skills/` — one skill per toolset, `skills/<name>/SKILL.md`, which every
   harness that takes skills loads from the package or plugin root; the native
