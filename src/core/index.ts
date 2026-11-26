@@ -1,7 +1,9 @@
 export { ToolError, isAbortError, isToolError, type ErrorCode, type ErrorDetails, type JsonValue } from "./errors"
 export { abortError, exec, type ExecOptions, type ExecResult } from "./exec"
 export { exitFailure, run, type RunOptions } from "./runner"
+export { MAX_SEGMENT_BYTES, analyze, type AnalyzeOptions } from "./engine/analyze"
 export { installEngine, type InstallOptions } from "./engine/install"
+export type { Morphology, NotRunReason, PartOfSpeech, SegmentAnalysis, SplitMode, Token } from "./engine/tokens"
 export {
   DICTIONARY_VERSION,
   PYTHON_VERSION,
