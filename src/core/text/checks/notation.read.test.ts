@@ -49,6 +49,6 @@ describe("writing_text_read with the notation rules", () => {
       CTX,
     )
     expect(excluded.conventions.latin_spacing).toEqual({ value: null, source: "unset" })
-    expect(excluded.findings.map(({ rule }) => rule)).toEqual(["punctuation", "halfwidth_katakana"])
+    expect(excluded.findings.map(({ rule }) => rule)).toEqual(["punctuation", "halfwidth_katakana", "register"])
   })
 })
