@@ -352,9 +352,11 @@ Every entry point takes the same settings:
   read, listed in `options` in `src/project.ts` (and `OPTIONS` in the Hermes
   plugin's `project.py`), each mapping a snake_case name to its type (`text`,
   `boolean`, `number`, `list`, `path` or `paths`) or a declaration with
-  `{ type, integer, min, max }`. `integer: true` requires a whole `number`;
-  `min` and `max` bound a `number` or count the items of a `list` or `paths`.
-  Only `type` is required. Its flag is the name with `_` as `-` (a
+  `{ type, integer, min, max, values }`. `integer: true` requires a whole
+  `number`; `min` and `max` bound a `number` or count the items of a `list` or
+  `paths`; `values` lists the only words a `text` may be, compared after
+  trimming, so a setting that picks one of a few choices is refused when
+  misspelt instead of silently doing nothing. Only `type` is required. Its flag is the name with `_` as `-` (a
   `boolean` flag takes no value), its variable is `<envPrefix>_<NAME>`
   uppercased, and its plugin option or setting is the name itself. A flag wins
   over its variable, an option over its variable, and a blank text or path or

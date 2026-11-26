@@ -207,7 +207,13 @@ function envText(
   return text === undefined || text.trim() === "" ? undefined : { text, source: variable }
 }
 
-type OptionBounds = { type: OptionType; integer?: true; min?: number; max?: number }
+type OptionBounds = {
+  type: OptionType
+  integer?: true
+  min?: number
+  max?: number
+  values?: readonly string[]
+}
 
 function optionType(spec: OptionSpec): OptionType {
   return typeof spec === "string" ? spec : spec.type
@@ -215,6 +221,11 @@ function optionType(spec: OptionSpec): OptionType {
 
 function itemCount(count: number): string {
   return count === 1 ? "1 item" : `${count} items`
+}
+
+function valuesBoundsError(values: readonly string[], source: string): ToolError {
+  const allowed = values.length === 1 ? values[0] : `one of ${values.join(", ")}`
+  return new ToolError("invalid_argument", `${source} must be ${allowed}.`)
 }
 
 function numberBoundsError({ integer, min, max }: OptionBounds, source: string): ToolError {
@@ -247,8 +258,12 @@ function withinBounds(
 ): ToolOptionValue | undefined {
   if (value === undefined || typeof spec === "string") return value
   const bounds: OptionBounds = spec
-  const { integer, min, max } = bounds
-  if (typeof value === "number") {
+  const { integer, min, max, values } = bounds
+  if (typeof value === "string") {
+    if (bounds.type === "text" && values !== undefined && !values.includes(value)) {
+      throw valuesBoundsError(values, source)
+    }
+  } else if (typeof value === "number") {
     if (
       (integer && !Number.isInteger(value)) ||
       (min !== undefined && value < min) ||

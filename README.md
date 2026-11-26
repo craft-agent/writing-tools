@@ -244,16 +244,18 @@ or `paths`, or as an object with `type` and optional bounds. For example, in
 options: {
   notes_dir: "path",
   note_limit: { type: "number", integer: true, min: 1, max: 50 },
+  note_order: { type: "text", values: ["newest", "oldest"] },
 }
 ```
 
 `integer: true` requires a whole number; `min` and `max` bound a number or
-count a `list` or `paths` value's items. An object with only `type` means the
+count a `list` or `paths` value's items; `values` lists the only words a `text`
+option may be, compared after trimming. An object with only `type` means the
 same as the type alone. Hermes's `OPTIONS` mirrors the declarations on one
 line, with double quotes and Python's `True` for `integer`:
 
 ```python
-OPTIONS: dict[str, str | dict[str, object]] = {"notes_dir": "path", "note_limit": {"type": "number", "integer": True, "min": 1, "max": 50}}
+OPTIONS: dict[str, str | dict[str, object]] = {"notes_dir": "path", "note_limit": {"type": "number", "integer": True, "min": 1, "max": 50}, "note_order": {"type": "text", "values": ["newest", "oldest"]}}
 ```
 
 ## Reads and writes
