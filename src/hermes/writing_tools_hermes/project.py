@@ -11,8 +11,8 @@ CLI_NAME = "writing-tools-cli"
 #: The prefix skills start with: skills named ``<SKILL_PREFIX><topic>`` are registered without it.
 SKILL_PREFIX = "writing-"
 
-#: The emoji each toolset is shown with; empty by default until a project adds its own.
-TOOLSET_EMOJI: dict[str, str] = {}
+#: The emoji each toolset is shown with.
+TOOLSET_EMOJI: dict[str, str] = {"text": "✍️"}
 
 #: The settings the tools themselves read: each snake_case name and a type (``text``, ``boolean``, ``number``,
 #: ``list``, ``path`` or ``paths``) or a dict with ``type`` and optional bounds (``integer``, ``min``, ``max``,

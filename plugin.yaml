@@ -7,6 +7,7 @@ provides_tools:
   - writing_grant_create
   - writing_grant_read
   - writing_grant_revoke
+  - writing_text_read
 provides_hooks:
   - pre_tool_call
 config_schema:
