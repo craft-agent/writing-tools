@@ -167,6 +167,27 @@ settings only to the MCP server, so they list every skill whatever the
 settings select. OpenCode V1 registers no skills, and its copied skills are
 all listed too.
 
+### Text (`text`)
+
+On by default. Inspects Japanese prose a caller passes in, and never writes.
+
+| Tool                | What it does                                                                                                       | Class |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------ | ----- |
+| `writing_text_read` | `inspect` a text's notation, expression, readability, outline and terms, or `compare` a revision with its original | read  |
+
+The skill is `japanese-writing`. The package has no house style: with no
+setting, a check reports only a text that mixes two conventions, and a rule
+that prefers one wording to another runs only when a setting names it (see
+[Writing conventions](#writing-conventions)). The checks that need Japanese
+morphology run once the engine is installed:
+
+```sh
+writing-tools-cli engine install   # build the engine's venv with uv
+writing-tools-cli engine status    # check it against the package's pins
+```
+
+Without it, those checks are listed as not run and the others still report.
+
 ### Grants (`grants`)
 
 Off by default. Delegates bounded writes for jobs where no person can answer.
@@ -415,6 +436,45 @@ bounds. Where each harness reads them:
   args = ["-y", "@craftsamo/writing-tools@<version>", "--read-only"]
   env_vars = ["WRITING_TOOLS_TOOLSETS"]
   ```
+
+### The package's own settings
+
+| Setting           | Flag                | Variable                        | Meaning                                                                                                       |
+| ----------------- | ------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `state_dir`       | `--state-dir`       | `WRITING_TOOLS_STATE_DIR`       | where the engine's venv is kept; default `$XDG_STATE_HOME/writing-tools`, else `~/.local/state/writing-tools` |
+| `rules`           | `--rules`           | `WRITING_TOOLS_RULES`           | rule ids to turn on among those off by default                                                                |
+| `exclude_rules`   | `--exclude-rules`   | `WRITING_TOOLS_EXCLUDE_RULES`   | rule ids to turn off; wins over `rules`                                                                       |
+| `sentence_length` | `--sentence-length` | `WRITING_TOOLS_SENTENCE_LENGTH` | characters past which a sentence is long, 20–400; unset, the genre's                                          |
+| `kanji_run`       | `--kanji-run`       | `WRITING_TOOLS_KANJI_RUN`       | kanji in a row past which a run is reported, 4–20; unset, the genre's                                         |
+| `no_chain`        | `--no-chain`        | `WRITING_TOOLS_NO_CHAIN`        | case-marking の in a row past which a chain is reported, 2–10; unset, the genre's                             |
+
+### Writing conventions
+
+Each convention is a setting, with its flag and variable named as above
+(`register` is `--register` and `WRITING_TOOLS_REGISTER`), and an argument of
+`writing_text_read` that overrides it for one call. Every one defaults to
+`document`: only a text that mixes two values draws a finding. Any other value
+is the one the text is held to.
+
+| Setting         | Values                                               | Decides                                                  |
+| --------------- | ---------------------------------------------------- | -------------------------------------------------------- |
+| `register`      | `document`, `polite`, `plain`                        | sentence endings: です・ます or だ・である               |
+| `latin_spacing` | `document`, `spaced`, `unspaced`                     | a space between Japanese and a Latin word or inline code |
+| `unit_spacing`  | `document`, `spaced`, `unspaced`                     | a space between a numeral and a Latin unit (`100 MB`)    |
+| `alnum_width`   | `document`, `halfwidth`, `fullwidth`                 | the width of Latin letters and digits                    |
+| `bracket_width` | `document`, `fullwidth`, `halfwidth`                 | the parentheses around Japanese text                     |
+| `punctuation`   | `document`, `ten_maru`, `comma_period`, `comma_maru` | 、。, ，． or ，。                                       |
+| `quotes`        | `document`, `corner`, `double`                       | 「」 or quotation marks around Japanese text             |
+| `range_mark`    | `document`, `wave_dash`, `fullwidth_tilde`, `hyphen` | 〜, ～ or a hyphen between two numbers                   |
+| `long_vowel`    | `document`, `keep`, `drop`                           | the closing ー of katakana words such as コンピューター  |
+| `counter_ka`    | `document`, `hiragana`, `small_ke`, `katakana`       | か, ヶ or カ in counters such as 3か月                   |
+
+For example, a team that writes polite, spaced technical Japanese sets, in
+OpenCode:
+
+```json
+{ "options": { "register": "polite", "latin_spacing": "spaced", "unit_spacing": "spaced" } }
+```
 
 ## Layout
 
