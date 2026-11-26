@@ -83,6 +83,8 @@ export {
 } from "./describe"
 export { PIN_PATTERN, pinOf } from "./pin"
 export { sizeFact } from "./facts"
+export { locate, readDocument } from "./text/document"
+export type { Block, Line, LineKind, Mask, MaskKind, Sentence, Terminator, TextDocument } from "./text/model"
 export {
   ENGLISH,
   languageOf,
