@@ -71,10 +71,10 @@ describe("the skill's references", () => {
     expect(missing).toEqual([])
   })
 
-  test("have a `###` section named by its id for every rule of the notation check", () => {
-    for (const { id, reference } of RULES.filter(({ check }) => check === "notation")) {
-      expect(reference).toBe(`notation.md#${id}`)
-      const sections = HEADINGS.get("notation.md")?.filter(({ level }) => level === 3) ?? []
+  test("have a `###` section named by its id, in the file of its check, for every rule", () => {
+    for (const { id, check, reference } of RULES) {
+      expect(reference).toBe(`${check}.md#${id}`)
+      const sections = HEADINGS.get(`${check}.md`)?.filter(({ level }) => level === 3) ?? []
       expect(sections.map(({ text }) => text)).toContain(`\`${id}\``)
     }
   })

@@ -2,8 +2,11 @@ import type { ConventionName } from "../conventions"
 import type { CheckContext, CheckResult, CheckSpec, RawFinding, RuleSpec } from "../rules"
 import { mergeResults } from "../rules"
 import { judgeConvention, type Occurrence } from "./convention"
+import { findCounterKa } from "./counters"
 import { readableLines, type LineView } from "./lines"
 import { findPunctuation, judgePunctuation } from "./punctuation"
+import { findQuotes } from "./quotes"
+import { findRangeMark } from "./ranges"
 import {
   findLatinSpacing,
   findSpaceAroundPunctuation,
@@ -11,6 +14,7 @@ import {
   findSpaceInsideBrackets,
   findUnitSpacing,
 } from "./spacing"
+import { findLongVowel, judgeLongVowel } from "./vowels"
 import { findAlnumWidth, findBracketWidth, findHalfwidthKatakana } from "./width"
 
 /** A rule that is on by default and needs no morphology, a `warn` explained in `notation.md` under its id. */
@@ -31,6 +35,10 @@ const CONVENTION_RULES: readonly ConventionRule[] = [
   { name: "alnum_width", find: findAlnumWidth },
   { name: "bracket_width", find: findBracketWidth },
   { name: "punctuation", find: findPunctuation, judge: judgePunctuation },
+  { name: "quotes", find: findQuotes },
+  { name: "range_mark", find: findRangeMark },
+  { name: "long_vowel", find: findLongVowel, judge: judgeLongVowel },
+  { name: "counter_ka", find: findCounterKa },
 ]
 
 /** A fault rule: where it finds the text it reports. */
@@ -49,7 +57,8 @@ const RULES: readonly RuleSpec[] = [
 ].map(warn)
 
 /**
- * Typography and spelling: spacing, widths and punctuation. It reads prose,
+ * Typography and spelling: spacing, widths, punctuation, quotation marks,
+ * range marks, long vowels and counters. It reads prose,
  * headings, list items and table rows, never a quotation or masked text. A
  * convention rule holds the text to the convention's value or to its own
  * majority, and a rule that is off is neither run nor settled.
