@@ -19,7 +19,7 @@ describe("the rule registry", () => {
     for (const spec of CHECK_SPECS) {
       for (const item of spec.rules) {
         expect(item.check).toBe(spec.name)
-        expect(item.reference).toMatch(/^[a-z-]+\.md#[a-z0-9-]+$/)
+        expect(item.reference).toMatch(/^[a-z-]+\.md#[a-z0-9_-]+$/)
       }
     }
   })
