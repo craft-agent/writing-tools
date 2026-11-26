@@ -685,7 +685,9 @@ endings moved against `stance`.
   so a rule never points to nothing.
 - **What is never checked**: fenced and indented code, inline code, URLs, link
   targets, HTML comments and front matter. Their text is masked, not removed,
-  so every position still points into the text as given.
+  so every position still points into the text as given. Quotations
+  (`>` blocks) are someone else's words: the checks read neither their
+  notation nor their register.
 - **A sentence may span lines.** A paragraph's soft line breaks do not end a
   sentence; a blank line, a heading, a list item or a table row does. Text
   wrapped at a fixed width then reads as the sentences it holds.
@@ -713,7 +715,10 @@ value is one of those listed; any other is refused as `invalid_argument`.
 - **`document`, the default, reports a mix.** Where the text uses two values
   of one convention, each use of the less common one is a `warn` finding that
   names the more common; on a tie, the one the text uses first counts as more
-  common. A text that uses one value throughout draws nothing.
+  common. A text that uses one value throughout draws nothing. The report
+  gives the value the text settled, with the source `document`; a convention
+  the text never uses stays `unset`, and so does one whose uses fit more than
+  one value (a text with only 。 fits both `ten_maru` and `comma_maru`).
 - **Any other value is the expected one.** Each use of another value is a
   `warn` finding, whatever the text does elsewhere.
 - **The report says what each convention was held to** and where the value
