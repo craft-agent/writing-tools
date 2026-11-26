@@ -1,0 +1,6 @@
+# The morphology engine and its dictionary. `pnpm run engine:lock` compiles
+# requirements.lock from this file with hashes for macOS and Linux; change the
+# pins here, run it, and change SUDACHIPY_VERSION / DICTIONARY_VERSION in the
+# code to match.
+SudachiPy==0.6.11
+sudachidict_core==20260723

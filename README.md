@@ -188,6 +188,11 @@ writing-tools-cli engine status    # check it against the package's pins
 
 Without it, those checks are listed as not run and the others still report.
 
+Install [uv](https://docs.astral.sh/uv/) first. The command creates
+`<state_dir>/engine/venv` from the package's hash-locked requirements, on its
+pinned Python. It installs wheels only and builds nothing from source; where
+no wheel is available, installation fails.
+
 ### Grants (`grants`)
 
 Off by default. Delegates bounded writes for jobs where no person can answer.

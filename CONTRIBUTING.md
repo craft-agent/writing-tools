@@ -29,6 +29,7 @@ pnpm run format:check
 pnpm run typecheck
 pnpm test
 python -m unittest discover -s src/hermes/tests
+python -m unittest discover -s engine/tests
 pnpm run build
 pnpm run manifests:check
 pnpm run smoke

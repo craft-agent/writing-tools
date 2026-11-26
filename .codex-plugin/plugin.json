@@ -24,7 +24,9 @@
         "WRITING_TOOLS_CONFIRM",
         "WRITING_TOOLS_UNATTENDED",
         "WRITING_TOOLS_GRANTS_DIR",
-        "WRITING_TOOLS_GRANT_KEY"
+        "WRITING_TOOLS_STATE_DIR",
+        "WRITING_TOOLS_GRANT_KEY",
+        "XDG_STATE_HOME"
       ]
     }
   }

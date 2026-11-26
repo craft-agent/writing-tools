@@ -772,26 +772,35 @@ Limits:
   ship in the npm package.
 - **The state root** is the `state_dir` path option, by default
   `$XDG_STATE_HOME/writing-tools` when `XDG_STATE_HOME` is absolute, else
-  `~/.local/state/writing-tools`. The venv is `<state root>/engine/venv`, and
-  the starter's `grants/` sits beside it when its setting leaves it there.
+  `~/.local/state/writing-tools`. The venv is `<state root>/engine/venv`. The
+  starter's grants keep their own default, under the default state root, so
+  moving `state_dir` does not move them.
 - **`engine install` builds the venv, and nothing else does.** The command
   line's `writing-tools-cli engine install` runs
   [uv](https://docs.astral.sh/uv/) to build it on a uv-managed Python of the
   version the package pins, from the hash-locked requirements file the package
-  ships, and installs nothing unpinned. A person runs it once; a tool call
-  never installs, downloads or updates anything. `engine status` says whether
-  the venv exists and whether its Python, SudachiPy and dictionary match the
-  pins.
-- **Pins**: SudachiPy 0.6.11 and `sudachidict_core` 20260723, with the
-  Python version settled with the lock. A release runs the analyzer it was
+  ships (`engine/requirements.lock`, compiled for macOS and Linux), and
+  installs nothing unpinned. A venv on another Python is rebuilt, never
+  reused. A person runs it once; a tool call never installs, downloads or
+  updates anything. `engine status` reads the venv's files, runs nothing, and
+  says whether the venv exists and whether its Python, SudachiPy and
+  dictionary match the pins.
+- **Wheels only.** The install builds nothing from source: SudachiPy's source
+  needs Rust, and the dictionary's source package downloads the dictionary
+  while it installs, outside the lock's hashes. Where no wheel exists, such as
+  on musl, the install fails and says why.
+- **Pins**: Python 3.12.13, SudachiPy 0.6.11 and `sudachidict_core` 20260723,
+  the last dictionary SudachiPy 0.6 reads. A release runs the analyzer it was
   tested with, so a dictionary update never moves a finding silently.
 - **One engine call per tool call.** The venv's interpreter runs the
   package's bridge through the runner: one JSON request on standard input
   (the segments to analyze and split mode C), one JSON reply on standard
-  output with each token's surface, offsets in characters, part of speech,
-  normalized and dictionary forms and reading. The bridge reaches no network
-  and writes no file; the call has a 30-second limit, and cancellation kills
-  it.
+  output with each token's surface, offsets in code points, part of speech,
+  normalized and dictionary forms and reading. The engine call turns the
+  offsets into JavaScript string indexes and checks each surface against
+  them, so a token always points at the text it names. The bridge reaches no
+  network and writes no file; the call has a 30-second limit, and
+  cancellation kills it.
 - **A segment is a paragraph**, and one over 40,000 bytes of UTF-8 is not
   analyzed: the dictionary's own limit sits a little above it. The rules that
   need tokens skip it and `not_run` names its lines.
