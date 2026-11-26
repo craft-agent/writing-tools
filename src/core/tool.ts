@@ -73,6 +73,8 @@ export type ToolContext = {
   confirm?(request: ConfirmRequest): Promise<boolean>
   /** Grants, for a call no person can be asked about; absent or not `unattended`, nothing changes. */
   grants?: GrantContext
+  /** Where the package keeps its state, such as the engine: an absolute path the entry point resolved. */
+  stateDir?: string
 }
 
 /**
