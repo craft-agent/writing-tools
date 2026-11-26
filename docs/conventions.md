@@ -795,10 +795,12 @@ Limits:
 - **One engine call per tool call.** The venv's interpreter runs the
   package's bridge through the runner: one JSON request on standard input
   (the segments to analyze and split mode C), one JSON reply on standard
-  output with each token's surface, offsets in characters, part of speech,
-  normalized and dictionary forms and reading. The bridge reaches no network
-  and writes no file; the call has a 30-second limit, and cancellation kills
-  it.
+  output with each token's surface, offsets in code points, part of speech,
+  normalized and dictionary forms and reading. The engine call turns the
+  offsets into JavaScript string indexes and checks each surface against
+  them, so a token always points at the text it names. The bridge reaches no
+  network and writes no file; the call has a 30-second limit, and
+  cancellation kills it.
 - **A segment is a paragraph**, and one over 40,000 bytes of UTF-8 is not
   analyzed: the dictionary's own limit sits a little above it. The rules that
   need tokens skip it and `not_run` names its lines.
