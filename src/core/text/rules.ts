@@ -3,7 +3,7 @@ import type { ConventionName, ResolvedConventions } from "./conventions"
 import type { TextDocument } from "./model"
 
 /** The checks that exist, in the order the report lists them; the others of `docs/conventions.md` are added with their rules. */
-export const CHECKS = ["notation", "expression"] as const
+export const CHECKS = ["notation", "expression", "readability"] as const
 
 /** The name of a check. */
 export type CheckName = (typeof CHECKS)[number]

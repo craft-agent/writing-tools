@@ -35,9 +35,10 @@ describe("the input schema", () => {
   })
 
   test("takes the checks that exist, at least one", () => {
-    expect(textReadInput.safeParse({ ...BASE, checks: ["notation", "expression"] }).success).toBe(true)
+    expect(textReadInput.safeParse({ ...BASE, checks: ["notation", "expression", "readability"] }).success).toBe(true)
     expect(textReadInput.safeParse({ ...BASE, checks: [] }).success).toBe(false)
-    expect(textReadInput.safeParse({ ...BASE, checks: ["readability"] }).success).toBe(false)
+    expect(textReadInput.safeParse({ ...BASE, checks: ["outline"] }).success).toBe(false)
+    expect(textReadInput.safeParse({ ...BASE, checks: ["terms"] }).success).toBe(false)
   })
 
   test("takes the rule lists as lists of text", () => {
