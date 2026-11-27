@@ -55,8 +55,28 @@ class SettingsFlagsTest(unittest.TestCase):
 
 
 class OptionFlagsTest(unittest.TestCase):
-    def test_the_package_has_the_state_dir_option(self) -> None:
-        self.assertEqual(project.OPTIONS, {"state_dir": "path"})
+    def test_the_package_has_its_options(self) -> None:
+        self.assertEqual(project.OPTIONS["state_dir"], "path")
+        self.assertEqual(project.OPTIONS["rules"], "list")
+        self.assertEqual(project.OPTIONS["exclude_rules"], "list")
+        conventions = (
+            "register",
+            "latin_spacing",
+            "unit_spacing",
+            "alnum_width",
+            "bracket_width",
+            "punctuation",
+            "quotes",
+            "range_mark",
+            "long_vowel",
+            "counter_ka",
+        )
+        self.assertEqual(set(project.OPTIONS), {"state_dir", *conventions, "rules", "exclude_rules"})
+        for name in conventions:
+            declaration = project.OPTIONS[name]
+            self.assertIsInstance(declaration, dict)
+            self.assertEqual(declaration["type"], "text")
+            self.assertEqual(declaration["values"][0], "document")
 
     def test_each_kind_becomes_a_flag(self) -> None:
         options = {"note_text": "text", "note_pinned": "boolean", "note_count": "number", "note_tags": "list"}
@@ -99,7 +119,7 @@ class OptionFlagsTest(unittest.TestCase):
 
     def test_dict_declarations_give_the_same_flags(self) -> None:
         for kind, value, bounds in (
-            ("text", " hello ", {}),
+            ("text", " hello ", {"values": ["hello", "world"]}),
             ("boolean", True, {}),
             ("number", -2.5, {"integer": True, "min": 1, "max": 50}),
             ("list", [" a ", "b", "c"], {"min": 1, "max": 2}),

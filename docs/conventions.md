@@ -352,9 +352,11 @@ Every entry point takes the same settings:
   read, listed in `options` in `src/project.ts` (and `OPTIONS` in the Hermes
   plugin's `project.py`), each mapping a snake_case name to its type (`text`,
   `boolean`, `number`, `list`, `path` or `paths`) or a declaration with
-  `{ type, integer, min, max }`. `integer: true` requires a whole `number`;
-  `min` and `max` bound a `number` or count the items of a `list` or `paths`.
-  Only `type` is required. Its flag is the name with `_` as `-` (a
+  `{ type, integer, min, max, values }`. `integer: true` requires a whole
+  `number`; `min` and `max` bound a `number` or count the items of a `list` or
+  `paths`; `values` lists the only words a `text` may be, compared after
+  trimming, so a setting that picks one of a few choices is refused when
+  misspelt instead of silently doing nothing. Only `type` is required. Its flag is the name with `_` as `-` (a
   `boolean` flag takes no value), its variable is `<envPrefix>_<NAME>`
   uppercased, and its plugin option or setting is the name itself. A flag wins
   over its variable, an option over its variable, and a blank text or path or
@@ -683,7 +685,9 @@ endings moved against `stance`.
   so a rule never points to nothing.
 - **What is never checked**: fenced and indented code, inline code, URLs, link
   targets, HTML comments and front matter. Their text is masked, not removed,
-  so every position still points into the text as given.
+  so every position still points into the text as given. Quotations
+  (`>` blocks) are someone else's words: the checks read neither their
+  notation nor their register.
 - **A sentence may span lines.** A paragraph's soft line breaks do not end a
   sentence; a blank line, a heading, a list item or a table row does. Text
   wrapped at a fixed width then reads as the sentences it holds.
@@ -711,7 +715,10 @@ value is one of those listed; any other is refused as `invalid_argument`.
 - **`document`, the default, reports a mix.** Where the text uses two values
   of one convention, each use of the less common one is a `warn` finding that
   names the more common; on a tie, the one the text uses first counts as more
-  common. A text that uses one value throughout draws nothing.
+  common. A text that uses one value throughout draws nothing. The report
+  gives the value the text settled, with the source `document`; a convention
+  the text never uses stays `unset`, and so does one whose uses fit more than
+  one value (a text with only 。 fits both `ten_maru` and `comma_maru`).
 - **Any other value is the expected one.** Each use of another value is a
   `warn` finding, whatever the text does elsewhere.
 - **The report says what each convention was held to** and where the value

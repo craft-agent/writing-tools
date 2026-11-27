@@ -137,6 +137,16 @@ describe("MCP configurations", () => {
         if (key === "integer") {
           expect(type).toBe("number")
           expect(value).toBe(true)
+        } else if (key === "values") {
+          expect(type).toBe("text")
+          expect(Array.isArray(value)).toBe(true)
+          expect(value.length).toBeGreaterThan(0)
+          for (const item of value) {
+            expect(typeof item).toBe("string")
+            expect(item.trim()).not.toBe("")
+            expect(item.trim()).toBe(item)
+          }
+          expect(new Set(value).size).toBe(value.length)
         } else {
           expect(["min", "max"]).toContain(key)
           expect(BOUNDED_OPTION_TYPES).toContain(type)

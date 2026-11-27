@@ -7,6 +7,7 @@ provides_tools:
   - writing_grant_create
   - writing_grant_read
   - writing_grant_revoke
+  - writing_text_read
 provides_hooks:
   - pre_tool_call
 config_schema:
@@ -35,3 +36,42 @@ config_schema:
   emoji:
     type: dict
     description: 'The emoji shown beside each toolset, by toolset name; "" shows none. Merged over the package''s emoji.'
+  state_dir:
+    type: str
+    description: Where the engine's venv is kept; default under the user's state directory.
+  register:
+    type: str
+    description: "Sentence endings (document, polite, plain); document reports only a mix within one text."
+  latin_spacing:
+    type: str
+    description: "Space between Japanese and a Latin word or inline code (document, spaced, unspaced); document reports only a mix within one text."
+  unit_spacing:
+    type: str
+    description: "Space between a numeral and a Latin unit (document, spaced, unspaced); document reports only a mix within one text."
+  alnum_width:
+    type: str
+    description: "Width of Latin letters and digits (document, halfwidth, fullwidth); document reports only a mix within one text."
+  bracket_width:
+    type: str
+    description: "Parentheses around Japanese text (document, fullwidth, halfwidth); document reports only a mix within one text."
+  punctuation:
+    type: str
+    description: "Sentence punctuation (document, ten_maru, comma_period, comma_maru); document reports only a mix within one text."
+  quotes:
+    type: str
+    description: "Quotation marks around Japanese text (document, corner, double); document reports only a mix within one text."
+  range_mark:
+    type: str
+    description: "Range mark between numbers (document, wave_dash, fullwidth_tilde, hyphen); document reports only a mix within one text."
+  long_vowel:
+    type: str
+    description: "Closing long vowel mark of katakana words (document, keep, drop); document reports only a mix within one text."
+  counter_ka:
+    type: str
+    description: "Counter form in expressions such as 3か月 (document, hiragana, small_ke, katakana); document reports only a mix within one text."
+  rules:
+    type: list
+    description: Rule ids to turn on among those off by default.
+  exclude_rules:
+    type: list
+    description: Rule ids to turn off. Wins over rules.
