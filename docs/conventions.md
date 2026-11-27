@@ -641,7 +641,11 @@ and every entry point checks them the same way.
 - **`checks`** is a subset of `notation`, `expression`, `readability`,
   `outline` and `terms`; left out, all of them run. Running every check costs
   one engine call either way, and a caller narrows the list to keep the
-  report short.
+  report short. `compare` takes no `checks`: it runs the `revision` check
+  alone, and a caller who wants the revision itself inspected calls
+  `inspect` on it.
+- **`original`** is the text the revision was made from. `compare` requires
+  it and `inspect` refuses it, so a call never compares by accident.
 - **`genre`** is `general` (the default), `technical`, `business` or `essay`.
   It moves the thresholds of the length and rhythm checks and turns off the
   formatting checks a genre expects to use (lists in technical writing, for
@@ -666,10 +670,29 @@ and every entry point checks them the same way.
 | `outline`     | an inventory: the headings with their levels and section sizes, and the share of bold, list and heading lines                            |
 | `terms`       | an inventory: acronyms, katakana words and Latin names, the forms of each, how often each appears and whether it is glossed              |
 
-`compare` runs the revision checks: numbers, names and content words found in
-only one of the two texts, obligation, conjecture and emphasis markers added
-or dropped, sentences whose leading connective or reference changed, and
-endings moved against `stance`.
+`compare` runs the `revision` check: numbers, names and content words found
+in only one of the two texts, obligation, conjecture and emphasis markers
+added or dropped, sentences whose leading connective or demonstrative
+changed, and endings moved against `stance`.
+
+- **Both texts are read alike.** The original is read as `inspect` reads a
+  text, so code, URLs, quotations and the rest are never compared.
+- **Sentences are aligned before they are compared.** A sentence found
+  unchanged in both texts pairs with itself, in order; the changed sentences
+  between two such pairs pair by their likeness. Markers, leading words and
+  endings are compared within a pair, or counted dropped or added with a
+  sentence that has no pair, so one marker dropped here and another added
+  there are two changes, not none. Numbers, names and content words are
+  compared over the whole text, so a sentence that only moved changes
+  nothing.
+- **A number is its value.** Full-width digits, comma grouping and kanji
+  numerals before a unit or a counter are read as the number they write, so
+  `1,000` and `１０００` are one number. Kanji numerals in words such as 一般
+  or 統一 are no numbers.
+- **What was lost costs more than what was added.** A number or a name the
+  revision lost is `critical`; one it added, a marker it changed and an
+  ending it moved against the stance are `warn`, since a reader takes them as
+  the writer's; content words and leading words are `info`.
 
 - **Checks are grouped by what they tell a writer**, not by how they work. A
   writer fixing the typography reads `notation`; one fixing the voice reads
@@ -780,7 +803,11 @@ Both methods return one object:
 - `findings`, in order of position: `check`, `rule`, `severity`, `line` and
   `column` (1-based, in characters), `excerpt`, `reason` and `reference`;
   `compare` adds `original_line` and `original_column` where the change has
-  a place in the original.
+  a place in the original. `line` and `column` are always in the revision:
+  for what the revision dropped, the place where it would have stood, the
+  start of the sentence paired with the original's, or of the next one that
+  has a pair. The excerpt is from the text the change is in: the original
+  for what was dropped, the revision for what was added or changed.
 - `counts`: findings by check and severity, counted before anything is cut.
 - `outline` and `terms` when those checks ran. The outline is the headings
   (`level`, `line`, `column`, `text` and the `chars` of the section up to the
