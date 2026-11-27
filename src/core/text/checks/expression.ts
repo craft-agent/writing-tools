@@ -6,12 +6,15 @@ import { judgeConvention } from "./convention"
 import { findBoldDensity, findListDensity } from "./density"
 import { findEmoji } from "./emoji"
 import { BUZZWORD_REASON, METAPHOR_REASON, METAPHOR_VERBS, VAGUE_BUZZWORDS } from "./figurative"
+import { findRepeatedLead } from "./lead"
+import { findLexicalRepetition } from "./lexical"
 import { readableLines } from "./lines"
 import { findRewrites, findWords } from "./phrases"
 import { findRegister } from "./register"
 import { findChoppySentences, findEndingRepetition, findUniformSentenceLength } from "./rhythm"
 import { findStanceEnding } from "./stance"
 import { STOCK_PHRASES } from "./stock"
+import { findInanimateSubject } from "./subject"
 import { TRANSLATIONESE } from "./translationese"
 
 /** The `register` rule: a convention rule on by default that needs no morphology, explained in `expression.md`. */
@@ -78,6 +81,18 @@ const FINDING_RULES: readonly FindingRule[] = [
     find: ({ doc }) => findRewrites(readableLines(doc), "translationese", TRANSLATIONESE),
   },
   {
+    spec: rule("repeated_lead", "info", { morphology: true }),
+    find: ({ doc, tokens, genre }) => findRepeatedLead(doc, tokens, genre),
+  },
+  {
+    spec: rule("lexical_repetition", "info", { morphology: true }),
+    find: ({ doc, tokens }) => findLexicalRepetition(doc, tokens),
+  },
+  {
+    spec: rule("inanimate_subject", "info", { defaultOn: false, morphology: true }),
+    find: ({ doc, tokens }) => findInanimateSubject(doc, tokens),
+  },
+  {
     spec: rule("vague_buzzword", "info", { defaultOn: false }),
     find: ({ doc }) => findWords(readableLines(doc), "vague_buzzword", VAGUE_BUZZWORDS, BUZZWORD_REASON),
   },
@@ -101,9 +116,10 @@ const FINDING_RULES: readonly FindingRule[] = [
  * does not render and the density of bold and lists; the rhythm of the
  * sentence endings and lengths; the endings a stance rules out; the phrases
  * that add length and no meaning, and the constructions carried over from a
- * translation; and, when `rules` names them, the buzzwords, metaphors, runs of
- * contrast constructions and emoji. A rule that is off is neither run nor
- * settled.
+ * translation; the sentence openings and the content words a text repeats, read
+ * from the engine's tokens; and, when `rules` names them, abstract subjects,
+ * buzzwords, metaphors, runs of contrast constructions and emoji. A rule that
+ * is off is neither run nor settled.
  */
 export const expressionCheck: CheckSpec = {
   name: "expression",

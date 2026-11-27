@@ -1,8 +1,12 @@
 import { describe, expect, test } from "bun:test"
 import { invoke } from "../../tool"
 import { writingTextRead } from "../read"
+import { TOKEN_RULES, unavailable } from "./expression.tokens.testing"
 
 const CTX = { cwd: process.cwd() }
+
+/** What a call without an engine lists: the rules on by default that read tokens. */
+const TOKEN_RULES_NOT_RUN = unavailable(...TOKEN_RULES)
 
 /** A text that draws every rule of the formatting, rhythm and stance groups once, and none of the others: all its sentences are about 15 characters long. */
 const TEXT = [
@@ -45,7 +49,7 @@ describe("writing_text_read with the formatting, rhythm and stance rules", () =>
       ["list_density", "info", 11, 3, "expression.md#list_density"],
     ])
     expect(report.counts.by_check.expression).toEqual({ critical: 1, warn: 1, info: 5 })
-    expect(report.not_run).toEqual([])
+    expect(report.not_run).toEqual(TOKEN_RULES_NOT_RUN)
   })
 
   test("says why", async () => {
@@ -65,10 +69,10 @@ describe("writing_text_read with the formatting, rhythm and stance rules", () =>
   test("leaves out the stance rule without a stance, and the list rule for technical text", async () => {
     const plain = await invoke(writingTextRead, { method: "inspect", text: TEXT }, CTX)
     expect(plain.findings.map(({ rule }) => rule)).not.toContain("stance_ending")
-    expect(plain.not_run).toEqual([])
+    expect(plain.not_run).toEqual(TOKEN_RULES_NOT_RUN)
     const technical = await invoke(writingTextRead, { method: "inspect", text: TEXT, genre: "technical" }, CTX)
     expect(technical.findings.map(({ rule }) => rule)).not.toContain("list_density")
     expect(technical.findings.map(({ rule }) => rule)).toContain("bold_density")
-    expect(technical.not_run).toEqual([])
+    expect(technical.not_run).toEqual(TOKEN_RULES_NOT_RUN)
   })
 })
