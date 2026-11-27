@@ -1,8 +1,8 @@
 import type { LineKind, TextDocument } from "../model"
 import { CODE_CHAR, LINK_CHAR } from "./chars"
 
-/** One line of the text a notation rule reads: its content as a view, and where the view starts in `doc.text`. */
-export type LineView = { start: number; text: string }
+/** One line of the text a rule reads: its content as a view, where the view starts in `doc.text`, and the kind of line it is. */
+export type LineView = { start: number; text: string; kind: LineKind }
 
 /** The kinds of line a notation rule reads; a quotation is someone else's text, and an excluded line is never checked. */
 const READ_KINDS: ReadonlySet<LineKind> = new Set(["prose", "heading", "list", "table"])
@@ -32,5 +32,9 @@ export function readableLines(doc: TextDocument): LineView[] {
   const marked = markedText(doc)
   return doc.lines
     .filter((line) => READ_KINDS.has(line.kind))
-    .map((line) => ({ start: line.contentStart, text: marked.slice(line.contentStart, line.contentEnd) }))
+    .map((line) => ({
+      start: line.contentStart,
+      text: marked.slice(line.contentStart, line.contentEnd),
+      kind: line.kind,
+    }))
 }
