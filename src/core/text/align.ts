@@ -17,14 +17,23 @@ export type Status = PairKind | "unpaired"
 /** One sentence of the original and the one of the revision it pairs with, as indexes into each document's `sentences`. */
 export type SentencePair = { original: number; revision: number; kind: PairKind }
 
+/** A sentence that only moved: its place in the original and in the revision, as indexes into each document's `sentences`. */
+export type SentenceMove = Omit<SentencePair, "kind">
+
 /** How the sentences of an original and of its revision line up. */
 export type Alignment = {
   /** In the order of both texts: a pair never crosses another. */
   pairs: readonly SentencePair[]
-  /** The sentences of the original that have no pair, as indexes into its `sentences`. */
+  /** The sentences of the original that have no pair, as indexes into its `sentences`; those that only moved are among them. */
   dropped: readonly number[]
-  /** The sentences of the revision that have no pair, as indexes into its `sentences`. */
+  /** The sentences of the revision that have no pair, as indexes into its `sentences`; those that only moved are among them. */
   added: readonly number[]
+  /**
+   * The sentences that only moved: each one of `dropped` that has the same key
+   * as one of `added` (see {@link keyOf}), matched in order. They stand in no
+   * pair, but the revision still holds all they said.
+   */
+  moved: readonly SentenceMove[]
   /** How the sentence that holds `offset` stands, or `undefined` for an offset outside every aligned sentence, such as a table row. */
   statusAt(side: Side, offset: number): Status | undefined
   /**
@@ -98,6 +107,25 @@ function pairUnits(original: readonly Unit[], revision: readonly Unit[]): UnitPa
   return pairs
 }
 
+/** The sentences left without a pair that have the same key in both texts, the first of one with the first of the other. */
+function movesOf(
+  original: readonly Unit[],
+  revision: readonly Unit[],
+  statuses: Readonly<Record<Side, readonly Status[]>>,
+): SentenceMove[] {
+  const waiting = new Map<string, number[]>()
+  original.forEach(({ index, key }, at) => {
+    if (statuses.original[at] !== "unpaired") return
+    const queue = waiting.get(key)
+    if (queue === undefined) waiting.set(key, [index])
+    else queue.push(index)
+  })
+  return revision.flatMap(({ index, key }, at) => {
+    const from = statuses.revision[at] === "unpaired" ? waiting.get(key)?.shift() : undefined
+    return from === undefined ? [] : [{ original: from, revision: index }]
+  })
+}
+
 /**
  * Aligns the sentences of two documents: the sentences of prose, list items
  * and headings, quotations and table rows left out. A sentence found
@@ -106,7 +134,7 @@ function pairUnits(original: readonly Unit[], revision: readonly Unit[]): UnitPa
  * pairs pair by their likeness (see {@link likePairs}), best first and
  * without crossing. A sentence left over was dropped from the original or
  * added to the revision, and one that only moved is both, so it pairs with
- * nothing. The sentences of both documents are read as the document split
+ * nothing; {@link Alignment.moved} tells which those are. The sentences of both documents are read as the document split
  * them; nothing is kept.
  */
 export function alignSentences(original: TextDocument, revision: TextDocument): Alignment {
@@ -137,6 +165,7 @@ export function alignSentences(original: TextDocument, revision: TextDocument): 
     })),
     dropped: first.flatMap((unit, at) => (statuses.original[at] === "unpaired" ? [unit.index] : [])),
     added: second.flatMap((unit, at) => (statuses.revision[at] === "unpaired" ? [unit.index] : [])),
+    moved: movesOf(first, second, statuses),
     statusAt(side, offset) {
       const holding = firstWhere(units[side], (unit) => unit.end > offset)
       const unit = units[side][holding]

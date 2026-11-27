@@ -60,20 +60,20 @@ export function classifyStanceEnding(body: string): StanceEnding | undefined {
 }
 
 /** The kinds of ending that go against each stance. */
-const CONFLICTS: Record<Stance, readonly EndingKind[]> = {
+export const CONFLICTS: Record<Stance, readonly EndingKind[]> = {
   advice: ["action"],
   rule: ["recommendation", "evaluation"],
   explanation: ["recommendation", "request"],
 }
 
-const KIND_NOUNS: Record<EndingKind, string> = {
+export const KIND_NOUNS: Record<EndingKind, string> = {
   recommendation: "a recommendation",
   request: "a request",
   evaluation: "an evaluation",
   action: "an action",
 }
 
-const STANCE_NOUNS: Record<Stance, string> = {
+export const STANCE_NOUNS: Record<Stance, string> = {
   advice: "advice",
   rule: "a rule",
   explanation: "an explanation",

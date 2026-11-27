@@ -1,13 +1,25 @@
 import { leadOf } from "../excerpt"
 import type { TextDocument } from "../model"
 import type { CheckSpec, Comparison, RawFinding, RuleSpec, Severity } from "../rules"
+import { MARKER_KINDS } from "./markers"
 import { numbersOf } from "./numbers"
+import { findLeadChanges, LEAD_RULE } from "./revision.leads"
+import { findMarkerChanges } from "./revision.markers"
+import { findStanceMoves, STANCE_RULE } from "./revision.stance"
 import { termUsesOf } from "./terms"
 import { unmatchedUses, type Use } from "./uses"
 
-/** A rule on by default that needs no morphology, explained in `revision.md` under its id. */
-function rule(id: string, severity: Severity): RuleSpec {
-  return { id, check: "revision", severity, defaultOn: true, morphology: false, reference: `revision.md#${id}` }
+/** A rule on by default that needs no morphology, explained in `revision.md` under its id; `extra` sets what it says besides. */
+function rule(id: string, severity: Severity, extra: Pick<RuleSpec, "needsStance"> = {}): RuleSpec {
+  return {
+    id,
+    check: "revision",
+    severity,
+    defaultOn: true,
+    morphology: false,
+    reference: `revision.md#${id}`,
+    ...extra,
+  }
 }
 
 /** What the revision compares as counts over the whole text: its two rules, the uses it counts, and how a reason names one. */
@@ -75,18 +87,35 @@ function findChanges(
   return [...lost, ...added]
 }
 
+/** The rules that compare the sentences of a pair: a marker kind's, a lead's and an ending's. */
+const SENTENCE_RULES: readonly RuleSpec[] = [
+  ...MARKER_KINDS.map(({ rule: id }) => rule(id, "warn")),
+  rule(LEAD_RULE, "info"),
+  rule(STANCE_RULE, "warn", { needsStance: true }),
+]
+
 /**
  * What a revision changed that may matter, found by comparing it with its
- * original: numbers and names that one text has more of than the other. Both
- * are counted over the whole text, so a sentence that only moved changes
- * nothing, and a number is its value (`1,000` and `１０００`). Without a
- * comparison, which only `compare` gives, it finds nothing.
+ * original. Numbers and names that one text has more of than the other are
+ * counted over the whole text, so a sentence that only moved changes nothing,
+ * and a number is its value (`1,000` and `１０００`). Obligation, conjecture
+ * and emphasis markers, the leading connective or demonstrative, and the
+ * ending against the stance are compared sentence by sentence, within the
+ * pairs the alignment made. Without a comparison, which only `compare` gives,
+ * it finds nothing.
  */
 export const revisionCheck: CheckSpec = {
   name: "revision",
-  rules: SUBJECTS.flatMap(({ lost, added }) => [lost, added]),
-  run({ doc, enabled, comparison }) {
+  rules: [...SUBJECTS.flatMap(({ lost, added }) => [lost, added]), ...SENTENCE_RULES],
+  run({ doc, enabled, stance, comparison }) {
     if (comparison === undefined) return { findings: [] }
-    return { findings: SUBJECTS.flatMap((subject) => findChanges(subject, doc, comparison, enabled)) }
+    return {
+      findings: [
+        ...SUBJECTS.flatMap((subject) => findChanges(subject, doc, comparison, enabled)),
+        ...findMarkerChanges(doc, comparison, enabled),
+        ...(enabled(LEAD_RULE) ? findLeadChanges(doc, comparison) : []),
+        ...(stance !== undefined && enabled(STANCE_RULE) ? findStanceMoves(doc, comparison, stance) : []),
+      ],
+    }
   },
 }

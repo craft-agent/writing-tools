@@ -90,6 +90,44 @@ describe("alignSentences", () => {
   })
 })
 
+describe("alignSentences, moved sentences", () => {
+  test("tells the sentences that only moved, which stay among the dropped and the added", () => {
+    const { alignment } = align(
+      ["一つ目の文です。", "二つ目の文です。", "三つ目の文です。"],
+      ["二つ目の文です。", "三つ目の文です。", "一つ目の文です。"],
+    )
+    expect(alignment.moved).toEqual([{ original: 0, revision: 2 }])
+    expect(alignment.dropped).toEqual([0])
+    expect(alignment.added).toEqual([2])
+  })
+
+  test("matches the copies of a sentence that moved in order", () => {
+    const { alignment } = align(
+      ["同じ文です。", "同じ文です。", "二つ目の文です。", "三つ目の文です。"],
+      ["二つ目の文です。", "三つ目の文です。", "同じ文です。", "同じ文です。"],
+    )
+    expect(alignment.moved).toEqual([
+      { original: 0, revision: 2 },
+      { original: 1, revision: 3 },
+    ])
+  })
+
+  test("leaves out a sentence that moved and changed, and one only dropped or added", () => {
+    const { alignment } = align(
+      ["猫が鳴く。", "価格は30円です。", "終わり。"],
+      ["終わり。", "明日は雨が降るでしょう。", "猫が鳴く。"],
+    )
+    expect(alignment.moved).toEqual([{ original: 0, revision: 2 }])
+    expect(alignment.dropped).toContain(1)
+    expect(alignment.added).toContain(1)
+  })
+
+  test("has none for texts in the same order", () => {
+    const { alignment } = align(["猫が鳴く。", "価格は30円です。"], ["猫が鳴く。", "価格は20円です。"])
+    expect(alignment.moved).toEqual([])
+  })
+})
+
 describe("alignSentences, places", () => {
   const ORIGINAL = ["一つ目です。", "二つ目の別の話です。", "三つ目です。", "四つ目です。"]
   const REVISION = ["一つ目です。", "三つ目です。", "四つ目です。", "五つ目です。"]

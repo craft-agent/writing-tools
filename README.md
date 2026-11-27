@@ -195,7 +195,10 @@ counts and whether each is glossed.
 `compare` takes the revision as `text` and the `original` it was made from, and
 needs no engine. It aligns the sentences of the two texts, then reports the
 numbers and names the revision lost (`critical`) or added (`warn`), counted over
-the whole text, so a sentence that only moved changes nothing. Each finding
+the whole text, so a sentence that only moved changes nothing. Within paired
+sentences it reports obligation, conjecture and emphasis markers dropped or
+added (`warn`), a leading connective or demonstrative that changed (`info`),
+and, when a `stance` is given, an ending moved against it (`warn`). Each finding
 gives its place in the revision, and in the original where it has one. It takes
 no `checks`; `inspect` refuses `original`.
 
