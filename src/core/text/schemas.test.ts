@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { CONVENTION_NAMES, CONVENTIONS } from "./conventions"
 import { MAX_LIMIT } from "./limits"
+import { GENRES, STANCES } from "./rules"
 import { textReadInput } from "./schemas"
 
 const BASE = { method: "inspect", text: "テスト" }
@@ -16,7 +17,14 @@ describe("the input schema", () => {
   })
 
   test("refuses an argument it does not know", () => {
-    expect(textReadInput.strict().safeParse({ ...BASE, genre: "essay" }).success).toBe(false)
+    expect(textReadInput.strict().safeParse({ ...BASE, tone: "essay" }).success).toBe(false)
+  })
+
+  test("takes the genres and the stances that exist, and refuses any other", () => {
+    for (const genre of GENRES) expect(textReadInput.safeParse({ ...BASE, genre }).success).toBe(true)
+    for (const stance of STANCES) expect(textReadInput.safeParse({ ...BASE, stance }).success).toBe(true)
+    expect(textReadInput.safeParse({ ...BASE, genre: "poetry" }).success).toBe(false)
+    expect(textReadInput.safeParse({ ...BASE, stance: "order" }).success).toBe(false)
   })
 
   test.each(CONVENTION_NAMES)("accepts every value of the convention %s and refuses any other", (name) => {

@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test"
 import { resolveConventions } from "../conventions"
 import { readDocument } from "../document"
 import type { CheckContext } from "../rules"
+import { checkContext } from "../rules.testing"
 import { holdToMajority, judgeConvention, type Occurrence } from "./convention"
 
 function at(value: string, start: number): Occurrence {
@@ -9,7 +10,7 @@ function at(value: string, start: number): Occurrence {
 }
 
 function context(args: Parameters<typeof resolveConventions>[0] = {}, options = {}): CheckContext {
-  return { doc: readDocument(""), conventions: resolveConventions(args, options), enabled: () => true }
+  return checkContext({ doc: readDocument(""), conventions: resolveConventions(args, options), enabled: () => true })
 }
 
 const SPACED = (start: number) => at("spaced", start)

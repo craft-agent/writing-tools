@@ -747,10 +747,15 @@ value is one of those listed; any other is refused as `invalid_argument`.
 
 Both methods return one object:
 
-- `report_version`, the method, and the checks that ran.
+- `report_version`, the method, the checks that ran, and the `genre` and
+  `stance` the call was held to (`stance` is `null` when none was given), so a
+  caller sees what the thresholds were.
 - `not_run`: each check or rule that did not run, with the reason
-  (`morphology_unavailable`, `morphology_failed`, `segment_too_long`) and the
-  lines it concerns, if any. A check left out is never reported as clean.
+  (`morphology_unavailable`, `morphology_failed`, `segment_too_long`), the
+  lines it concerns, if any (the first 50 of them), and, when installing the
+  engine would make it run, the command that does. A rule that its genre turns
+  off, or that needs a stance the call did not give, is not listed: it was
+  never meant to run. A check left out is never reported as clean.
 - `conventions`: each convention's value and its source (`argument`,
   `setting`, `document` or `unset`).
 - `findings`, in order of position: `check`, `rule`, `severity`, `line` and
@@ -809,8 +814,9 @@ Limits:
 - **The engine runs only when a rule needs it.** A call whose rules that are
   on and asked for need no tokens starts nothing, so a call that checks only
   notation costs no Python start. The segments are the blocks the rules read,
-  with masked characters blanked, so every token's offset is an offset in the
-  text.
+  with masked characters and line breaks blanked, so every token's offset is an
+  offset in the text. Those blocks are paragraphs and list items; headings,
+  table rows and quotations are not sent.
 - **One engine call per tool call.** The venv's interpreter runs the
   package's bridge through the runner: one JSON request on standard input
   (the segments to analyze and split mode C), one JSON reply on standard

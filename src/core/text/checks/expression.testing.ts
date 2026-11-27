@@ -2,6 +2,7 @@ import type { ToolOptions } from "../../tool"
 import { resolveConventions } from "../conventions"
 import { readDocument } from "../document"
 import type { CheckResult, RawFinding } from "../rules"
+import { checkContext } from "../rules.testing"
 import { selectRules } from "../selection"
 import { expressionCheck } from "./expression"
 import type { Given } from "./notation.testing"
@@ -11,7 +12,7 @@ export function run(text: string, given: Given = {}, options: ToolOptions = {}):
   const doc = readDocument(text)
   const conventions = resolveConventions(given, options)
   const enabled = selectRules(given, options, [expressionCheck])
-  return expressionCheck.run({ doc, conventions, enabled })
+  return expressionCheck.run(checkContext({ doc, conventions, enabled }))
 }
 
 function inOrder(text: string, given: Given, options: ToolOptions): RawFinding[] {

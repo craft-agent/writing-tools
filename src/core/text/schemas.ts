@@ -1,8 +1,8 @@
 import { z } from "zod"
 import type { NotRunReason } from "../engine/tokens"
 import { CONVENTION_NAMES, CONVENTION_SOURCES, CONVENTIONS, DOCUMENT_VALUE } from "./conventions"
-import { DEFAULT_LIMIT, MAX_EXCERPT, MAX_LIMIT, MAX_RESULT_BYTES, MAX_TEXT_BYTES } from "./limits"
-import { CHECKS, SEVERITIES, type Severity } from "./rules"
+import { DEFAULT_LIMIT, MAX_EXCERPT, MAX_LIMIT, MAX_NOT_RUN_LINES, MAX_RESULT_BYTES, MAX_TEXT_BYTES } from "./limits"
+import { CHECKS, GENRES, SEVERITIES, STANCES, type Severity } from "./rules"
 
 /** The methods of `writing_text_read`, in the order the schema lists them. */
 export const TEXT_METHODS = ["inspect"] as const
@@ -47,6 +47,18 @@ export const textReadInput = z.object({
     .min(1)
     .optional()
     .describe(`Method \`inspect\`: the checks to run, from ${CHECKS.join(", ")}; left out, all of them run.`),
+  genre: z
+    .enum(GENRES)
+    .optional()
+    .describe(
+      "Method `inspect`: the kind of writing, `general` by default. It moves the thresholds of the length and rhythm checks and turns off the formatting checks the genre expects to use (lists in technical writing, for one); it never selects a convention.",
+    ),
+  stance: z
+    .enum(STANCES)
+    .optional()
+    .describe(
+      "Method `inspect`: what the sentence endings are meant to be, a recommendation (`advice`), a requirement (`rule`) or a description (`explanation`); unset by default. Given, an ending that contradicts it is reported.",
+    ),
   ...conventionArguments,
   rules: z
     .array(z.string())
@@ -93,8 +105,13 @@ const notRun = z.object({
   check: z.enum(CHECKS),
   rule: z.string().optional().describe("The rule that did not run; left out when the whole check did not."),
   reason: z.enum(NOT_RUN_REASONS),
-  lines: z.array(z.number().int()).optional().describe("The lines the reason concerns, when it concerns some."),
-  action: z.string().optional().describe("What makes the rule run, when something does."),
+  lines: z
+    .array(z.number().int())
+    .optional()
+    .describe(
+      `The lines the reason concerns, when it concerns some, in order and at most the first ${MAX_NOT_RUN_LINES}.`,
+    ),
+  action: z.string().optional().describe("The command a person runs to make the rule run, when there is one."),
 })
 
 const resolvedConvention = z.object({
@@ -106,6 +123,11 @@ export const textReadOutput = z.object({
   report_version: z.literal(REPORT_VERSION),
   method: z.enum(TEXT_METHODS),
   checks: z.array(z.enum(CHECKS)).describe("The checks that ran, in the order of the checks list."),
+  genre: z.enum(GENRES).describe("The genre the thresholds and the formatting checks were held to."),
+  stance: z
+    .enum(STANCES)
+    .nullable()
+    .describe("The stance the sentence endings were held to; null when none was given."),
   note: z.string(),
   not_run: z
     .array(notRun)

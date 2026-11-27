@@ -12,3 +12,6 @@ export const DEFAULT_LIMIT = 50
 
 /** The most findings `limit` may ask for. */
 export const MAX_LIMIT = 200
+
+/** The most line numbers one `not_run` entry lists, so a text of many skipped paragraphs does not fill the result. */
+export const MAX_NOT_RUN_LINES = 50

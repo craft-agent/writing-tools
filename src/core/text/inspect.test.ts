@@ -28,25 +28,25 @@ function recording(): { seen: CheckContext[]; checks: CheckSpec[] } {
 }
 
 describe("inspect", () => {
-  test("runs every check when `checks` is left out, in the order of the checks list", () => {
+  test("runs every check when `checks` is left out, in the order of the checks list", async () => {
     const { checks } = recording()
-    const report = inspect(readDocument(CALL.text), CALL, {}, checks)
+    const report = await inspect(readDocument(CALL.text), CALL, {}, checks)
     expect(report.checks).toEqual(["notation", "expression"])
     expect(report.findings.map((item) => item.rule)).toEqual(["n_rule", "e_rule"])
   })
 
-  test("runs only the checks asked for, once each, and echoes them", () => {
+  test("runs only the checks asked for, once each, and echoes them", async () => {
     const { checks, seen } = recording()
-    const report = inspect(readDocument(CALL.text), { ...CALL, checks: ["expression", "expression"] }, {}, checks)
+    const report = await inspect(readDocument(CALL.text), { ...CALL, checks: ["expression", "expression"] }, {}, checks)
     expect(report.checks).toEqual(["expression"])
     expect(seen).toHaveLength(1)
     expect(report.findings.map((item) => item.rule)).toEqual(["e_rule"])
   })
 
-  test("gives each check the document, the resolved conventions and the rules that are on", () => {
+  test("gives each check the document, the resolved conventions and the rules that are on", async () => {
     const { checks, seen } = recording()
     const doc = readDocument(CALL.text)
-    inspect(
+    await inspect(
       doc,
       { ...CALL, register: "polite", rules: ["n_off"], exclude_rules: ["e_rule"] },
       { quotes: "corner" },
@@ -63,32 +63,32 @@ describe("inspect", () => {
     }
   })
 
-  test("refuses an unknown rule id before running any check", () => {
+  test("refuses an unknown rule id before running any check", async () => {
     const { checks, seen } = recording()
-    expect(() => inspect(readDocument(CALL.text), { ...CALL, rules: ["nope"] }, {}, checks)).toThrow("nope")
+    await expect(inspect(readDocument(CALL.text), { ...CALL, rules: ["nope"] }, {}, checks)).rejects.toThrow("nope")
     expect(seen).toEqual([])
   })
 
-  test("reports what a check settled as the document's, unless a value was given", () => {
+  test("reports what a check settled as the document's, unless a value was given", async () => {
     const check: CheckSpec = {
       name: "notation",
       rules: [rule("n_rule")],
       run: () => ({ findings: [], settled: { latin_spacing: "spaced", quotes: "double" } }),
     }
-    const { conventions } = inspect(readDocument(CALL.text), { ...CALL, quotes: "corner" }, {}, [check])
+    const { conventions } = await inspect(readDocument(CALL.text), { ...CALL, quotes: "corner" }, {}, [check])
     expect(conventions.latin_spacing).toEqual({ value: "spaced", source: "document" })
     expect(conventions.quotes).toEqual({ value: "corner", source: "argument" })
     expect(conventions.register).toEqual({ value: null, source: "unset" })
   })
 
-  test("returns the default number of findings when `limit` is left out", () => {
+  test("returns the default number of findings when `limit` is left out", async () => {
     const rules = [rule("n_rule")]
     const many = Array.from({ length: DEFAULT_LIMIT + 5 }, () => found("n_rule", 0))
-    const report = inspect(readDocument(CALL.text), CALL, {}, [fakeCheck("notation", rules, many)])
+    const report = await inspect(readDocument(CALL.text), CALL, {}, [fakeCheck("notation", rules, many)])
     expect(report.findings).toHaveLength(DEFAULT_LIMIT)
     expect(report.cut).toEqual({ findings: 5 })
     expect(
-      inspect(readDocument(CALL.text), { ...CALL, limit: 60 }, {}, [fakeCheck("notation", rules, many)]).cut,
+      (await inspect(readDocument(CALL.text), { ...CALL, limit: 60 }, {}, [fakeCheck("notation", rules, many)])).cut,
     ).toBeUndefined()
   })
 })

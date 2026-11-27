@@ -1,4 +1,11 @@
-import type { CheckName, CheckSpec, RawFinding, RuleSpec } from "./rules"
+import {
+  DEFAULT_GENRE,
+  type CheckContext,
+  type CheckName,
+  type CheckSpec,
+  type RawFinding,
+  type RuleSpec,
+} from "./rules"
 
 /** A rule that is on by default, a `warn` of the `notation` check, unless `extra` says otherwise. */
 export function rule(id: string, extra: Partial<RuleSpec> = {}): RuleSpec {
@@ -16,6 +23,13 @@ export function rule(id: string, extra: Partial<RuleSpec> = {}): RuleSpec {
 /** A check that finds what `found` says, whatever the document. */
 export function fakeCheck(name: CheckName, rules: readonly RuleSpec[], found: readonly RawFinding[] = []): CheckSpec {
   return { name, rules, run: () => ({ findings: [...found] }) }
+}
+
+/** The context of a check called directly: the general genre, no stance and no tokens unless `parts` say otherwise. */
+export function checkContext(
+  parts: Pick<CheckContext, "doc" | "conventions" | "enabled"> & Partial<CheckContext>,
+): CheckContext {
+  return { genre: DEFAULT_GENRE, stance: undefined, tokens: new Map(), ...parts }
 }
 
 /** A finding of `rule` over `[start, end)`, with a reason naming the rule. */
