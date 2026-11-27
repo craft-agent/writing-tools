@@ -46,16 +46,23 @@ const SPACE = " "
 /** The characters of a segment the engine reads as blank: masked units and line breaks. */
 const BLANKED = new RegExp(`[${MASK_CHAR}\\r\\n]`, "g")
 
-type Word = { surface: string; pos: PartOfSpeech; dictionary: string }
+type Word = { surface: string; pos: PartOfSpeech; dictionary: string; normalized: string }
 
+/** A word's entry; `=dictionary` sets the dictionary form, and `=dictionary=normalized` a normalized form that differs from it (else it is the dictionary form). */
 function parseWord(entry: string): Word {
-  const [form, dictionary] = entry.split("=")
+  const [form, dictionary, normalized] = entry.split("=")
   const [surface, pos0, pos1 = "*"] = form.split("/")
-  return { surface, pos: [pos0, pos1, "*", "*", "*", "*"], dictionary: dictionary ?? surface }
+  const dictionaryForm = dictionary ?? surface
+  return {
+    surface,
+    pos: [pos0, pos1, "*", "*", "*", "*"],
+    dictionary: dictionaryForm,
+    normalized: normalized ?? dictionaryForm,
+  }
 }
 
-function tokenOf({ surface, pos, dictionary }: Word, start: number): Token {
-  return { surface, start, end: start + surface.length, pos, normalized: dictionary, dictionary, reading: "" }
+function tokenOf({ surface, pos, dictionary, normalized }: Word, start: number): Token {
+  return { surface, start, end: start + surface.length, pos, normalized, dictionary, reading: "" }
 }
 
 /** The tokens of one segment, their offsets moved by `offset`. */
@@ -64,7 +71,9 @@ function tokenize(segment: string, offset: number, words: readonly Word[]): Toke
   for (let at = 0; at < segment.length;) {
     if (segment[at] === SPACE) {
       const end = segment.length - segment.slice(at).trimStart().length
-      tokens.push(tokenOf({ surface: segment.slice(at, end), pos: BLANK, dictionary: SPACE }, offset + at))
+      tokens.push(
+        tokenOf({ surface: segment.slice(at, end), pos: BLANK, dictionary: SPACE, normalized: SPACE }, offset + at),
+      )
       at = end
       continue
     }

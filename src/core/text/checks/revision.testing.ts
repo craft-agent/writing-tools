@@ -1,6 +1,13 @@
 import { invoke, type ToolOptions } from "../../tool"
 import { writingTextRead } from "../read"
-import type { TextReadInput, TextReadOutput } from "../schemas"
+import type { NotRun, TextReadInput, TextReadOutput } from "../schemas"
+
+/** What a `compare` call without an engine lists as not run: the two content word rules, the only ones that read tokens. */
+export const WORDS_UNAVAILABLE: NotRun[] = ["content_word_lost", "content_word_added"].map((rule) => ({
+  check: "revision",
+  rule,
+  reason: "morphology_unavailable",
+}))
 
 /** The arguments of a `compare` call besides the two texts. */
 type Given = Partial<Omit<TextReadInput, "method" | "text" | "original">>
