@@ -42,10 +42,10 @@ const PATTERNS = ENDINGS.map(({ register, words, particles, finals }) => ({
 const TRAILING = /(?:[*_」』）)\]\s]|(?<!^)[（(][^（）()]*[）)])$/
 
 /** The kinds of block whose sentences are counted. */
-const COUNTED_KINDS: ReadonlySet<LineKind> = new Set(["prose", "list"])
+export const COUNTED_KINDS: ReadonlySet<LineKind> = new Set(["prose", "list"])
 
 /** The text with what trails the wording taken off, again and again until nothing more goes. */
-function stripTrailing(text: string): string {
+export function stripTrailing(text: string): string {
   const stripped = text.replace(TRAILING, "")
   return stripped === text ? text : stripTrailing(stripped)
 }
@@ -64,11 +64,31 @@ export function classifyEnding(body: string): Ending | undefined {
   return undefined
 }
 
+/** A sentence that ends in a terminator, read as its visible wording. */
+export type Wording = {
+  sentence: Sentence
+  /** The sentence's characters without the masked units, the terminator and what follows it included. */
+  text: string
+  /** Where each character of `text` is in the document's text. */
+  offsets: readonly number[]
+  /** Where the terminator is in `text`. */
+  terminatorAt: number
+}
+
 /** The sentence's characters without the masked units, and where each one is in the text. */
 function visible(masked: string, { start, end }: Sentence): { text: string; offsets: number[] } {
   const offsets: number[] = []
   for (let at = start; at < end; at++) if (masked[at] !== MASK_CHAR) offsets.push(at)
   return { text: offsets.map((at) => masked[at]).join(""), offsets }
+}
+
+/** The wording of every sentence of the given kinds of block that ends in a terminator, in the order of the text. */
+export function terminatedSentences(doc: TextDocument, kinds: ReadonlySet<LineKind>): Wording[] {
+  return doc.sentences.flatMap((sentence) => {
+    if (!kinds.has(sentence.kind) || sentence.terminator === null) return []
+    const { text, offsets } = visible(doc.masked, sentence)
+    return [{ sentence, text, offsets, terminatorAt: text.lastIndexOf(sentence.terminator) }]
+  })
 }
 
 /**
@@ -78,10 +98,7 @@ function visible(masked: string, { start, end }: Sentence): { text: string; offs
  * counted.
  */
 export function findRegister(doc: TextDocument): Occurrence[] {
-  return doc.sentences.flatMap((sentence) => {
-    if (!COUNTED_KINDS.has(sentence.kind) || sentence.terminator === null) return []
-    const { text, offsets } = visible(doc.masked, sentence)
-    const terminatorAt = text.lastIndexOf(sentence.terminator)
+  return terminatedSentences(doc, COUNTED_KINDS).flatMap(({ text, offsets, terminatorAt }) => {
     const ending = classifyEnding(text.slice(0, terminatorAt))
     if (ending === undefined) return []
     return [{ value: ending.register, start: offsets[ending.index], end: offsets[terminatorAt] + 1 }]

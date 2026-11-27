@@ -4,6 +4,9 @@ import { writingTextRead } from "../read"
 
 const CTX = { cwd: process.cwd() }
 
+/** The rhythm rules this text also draws, left out so the tests read the convention rules alone. */
+const RHYTHM_RULES = ["choppy_sentences", "ending_repetition"]
+
 const TEXT = [
   "# 作業の手順",
   "",
@@ -15,7 +18,7 @@ const TEXT = [
 
 describe("writing_text_read with the convention rules of both checks", () => {
   test("reports each minority with its reference, and the conventions the text settled", async () => {
-    const report = await invoke(writingTextRead, { method: "inspect", text: TEXT }, CTX)
+    const report = await invoke(writingTextRead, { method: "inspect", text: TEXT, exclude_rules: RHYTHM_RULES }, CTX)
     expect(report.findings.map(({ rule, line, column, reference }) => [rule, line, column, reference])).toEqual([
       ["range_mark", 4, 2, "notation.md#range_mark"],
       ["quotes", 4, 6, "notation.md#quotes"],
@@ -63,7 +66,11 @@ describe("writing_text_read with the convention rules of both checks", () => {
   })
 
   test("runs only the check that was asked for", async () => {
-    const report = await invoke(writingTextRead, { method: "inspect", text: TEXT, checks: ["expression"] }, CTX)
+    const report = await invoke(
+      writingTextRead,
+      { method: "inspect", text: TEXT, checks: ["expression"], exclude_rules: RHYTHM_RULES },
+      CTX,
+    )
     expect(report.findings.map(({ rule }) => rule)).toEqual(["register"])
     expect(report.conventions.quotes).toEqual({ value: null, source: "unset" })
   })

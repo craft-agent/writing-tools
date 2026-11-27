@@ -9,9 +9,11 @@ import {
   SEVERITIES,
   type CheckName,
   type CheckSpec,
+  type Genre,
   type RawFinding,
   type RuleSpec,
   type Severity,
+  type Stance,
 } from "./rules"
 import {
   REPORT_VERSION,
@@ -27,7 +29,12 @@ export type ReportInput = {
   doc: TextDocument
   /** The checks that ran. */
   checks: readonly CheckName[]
+  /** The genre the call was held to, resolved. */
+  genre: Genre
+  /** The stance the call was held to; `undefined` when it gave none. */
+  stance: Stance | undefined
   conventions: ResolvedConventions
+  /** Never cut: the result's byte budget counts it, and the caller bounds its size. */
   notRun: readonly NotRun[]
   /** What the checks found, in any order. */
   found: readonly RawFinding[]
@@ -140,6 +147,8 @@ export function buildReport(input: ReportInput): TextReadOutput {
     report_version: REPORT_VERSION,
     method: "inspect",
     checks: [...input.checks],
+    genre: input.genre,
+    stance: input.stance ?? null,
     note: UNTRUSTED_NOTE,
     not_run: [...input.notRun],
     conventions: input.conventions,

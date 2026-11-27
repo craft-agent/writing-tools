@@ -2,6 +2,7 @@ import type { ToolOptions } from "../../tool"
 import { resolveConventions, type ConventionArguments } from "../conventions"
 import { readDocument } from "../document"
 import type { CheckResult } from "../rules"
+import { checkContext } from "../rules.testing"
 import { selectRules, type RuleArguments } from "../selection"
 import type { Occurrence } from "./convention"
 import { readableLines, type LineView } from "./lines"
@@ -21,7 +22,7 @@ export function run(text: string, given: Given = {}, options: ToolOptions = {}):
   const doc = readDocument(text)
   const conventions = resolveConventions(given, options)
   const enabled = selectRules(given, options, [notationCheck])
-  return notationCheck.run({ doc, conventions, enabled })
+  return notationCheck.run(checkContext({ doc, conventions, enabled }))
 }
 
 /** The rule and the matched text of each finding of the notation check, in position order. */

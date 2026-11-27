@@ -45,7 +45,7 @@ describe("writing_text_read with the notation rules", () => {
     expect(other.conventions.latin_spacing).toEqual({ value: null, source: "unset" })
     const excluded = await invoke(
       writingTextRead,
-      { method: "inspect", text: TEXT, exclude_rules: ["latin_spacing"] },
+      { method: "inspect", text: TEXT, exclude_rules: ["latin_spacing", "choppy_sentences"] },
       CTX,
     )
     expect(excluded.conventions.latin_spacing).toEqual({ value: null, source: "unset" })

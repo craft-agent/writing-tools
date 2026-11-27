@@ -19,6 +19,8 @@ function build(text: string, raws: RawFinding[], limit = 50) {
   return buildReport({
     doc: readDocument(text),
     checks: ["notation", "expression"],
+    genre: "general",
+    stance: undefined,
     conventions: resolveConventions({}, {}),
     notRun: [],
     found: raws,
@@ -32,13 +34,22 @@ describe("buildReport", () => {
     const report = buildReport({
       doc: readDocument("x"),
       checks: ["expression"],
+      genre: "technical",
+      stance: "rule",
       conventions: resolveConventions({ register: "polite" }, {}),
       notRun: [{ check: "notation", reason: "morphology_unavailable", action: "engine_install" }],
       found: [],
       specs: SPECS,
       limit: 5,
     })
-    expect(report).toMatchObject({ report_version: 1, method: "inspect", checks: ["expression"], note: UNTRUSTED_NOTE })
+    expect(report).toMatchObject({
+      report_version: 1,
+      method: "inspect",
+      checks: ["expression"],
+      genre: "technical",
+      stance: "rule",
+      note: UNTRUSTED_NOTE,
+    })
     expect(report.not_run).toEqual([{ check: "notation", reason: "morphology_unavailable", action: "engine_install" }])
     expect(report.conventions.register).toEqual({ value: "polite", source: "argument" })
     expect(report.findings).toEqual([])

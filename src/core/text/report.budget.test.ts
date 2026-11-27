@@ -2,10 +2,11 @@ import { Buffer } from "node:buffer"
 import { describe, expect, test } from "bun:test"
 import { resolveConventions } from "./conventions"
 import { readDocument } from "./document"
-import { MAX_LIMIT, MAX_RESULT_BYTES } from "./limits"
+import { MAX_LIMIT, MAX_NOT_RUN_LINES, MAX_RESULT_BYTES } from "./limits"
 import { buildReport } from "./report"
 import { fakeCheck, found, rule } from "./rules.testing"
 import type { RawFinding } from "./rules"
+import type { NotRun } from "./schemas"
 
 const SPECS = [
   fakeCheck("notation", [
@@ -18,12 +19,14 @@ const SPECS = [
 const TEXT = "あ".repeat(500)
 const LONG_REASON = "r".repeat(600)
 
-function build(raws: RawFinding[], limit = MAX_LIMIT) {
+function build(raws: RawFinding[], limit = MAX_LIMIT, notRun: NotRun[] = []) {
   return buildReport({
     doc: readDocument(TEXT),
     checks: ["notation", "expression"],
+    genre: "general",
+    stance: undefined,
     conventions: resolveConventions({}, {}),
-    notRun: [],
+    notRun,
     found: raws,
     specs: SPECS,
     limit,
@@ -79,6 +82,22 @@ describe("buildReport and the byte budget", () => {
   test("adds the budget's cut to the limit's, so `cut` counts everything not returned", () => {
     const report = build(crowd(LONG_REASON), 100)
     expect(report.findings.length).toBeLessThan(100)
+    expect(report.cut).toEqual({ findings: 400 - report.findings.length })
+  })
+
+  test("counts `not_run` in the budget, which it never cuts", () => {
+    const lines = Array.from({ length: MAX_NOT_RUN_LINES }, (_, index) => 10_000 + index)
+    const notRun = Array.from({ length: 20 }, (_, index): NotRun => ({
+      check: "expression",
+      rule: `rule_${index}`,
+      reason: "segment_too_long",
+      lines,
+    }))
+    const without = build(crowd(LONG_REASON))
+    const report = build(crowd(LONG_REASON), MAX_LIMIT, notRun)
+    expect(report.not_run).toEqual(notRun)
+    expect(bytesOf(report)).toBeLessThanOrEqual(MAX_RESULT_BYTES)
+    expect(report.findings.length).toBeLessThan(without.findings.length)
     expect(report.cut).toEqual({ findings: 400 - report.findings.length })
   })
 

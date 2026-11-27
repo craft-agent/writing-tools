@@ -610,6 +610,13 @@ and every entry point checks them the same way.
   default.** It runs only when the `rules` setting or argument names it. What
   one team calls stock phrasing is another's plain usage, and a check that
   fires on legitimate text teaches the agent to rewrite good prose.
+- **A phrase that adds length without adding meaning is not a preference.**
+  `stock_phrase` and `translationese` are on by default, at `info`, because
+  each phrase on their lists has a shorter form that says the same
+  (`することができる` and `できる`), so no reading is lost by the shorter one.
+  A phrase whose shorter form changes the meaning, or that one register or
+  field uses as its plain word, stays off the lists; a vague buzzword or a
+  metaphor is a choice of tone, and its rule is off until `rules` names it.
 - **No caller, harness or agent is named** in the tool, its descriptions, its
   messages or the skill. The tool reports; what a caller does with a finding
   is the caller's.
@@ -740,10 +747,15 @@ value is one of those listed; any other is refused as `invalid_argument`.
 
 Both methods return one object:
 
-- `report_version`, the method, and the checks that ran.
+- `report_version`, the method, the checks that ran, and the `genre` and
+  `stance` the call was held to (`stance` is `null` when none was given), so a
+  caller sees what the thresholds were.
 - `not_run`: each check or rule that did not run, with the reason
-  (`morphology_unavailable`, `morphology_failed`, `segment_too_long`) and the
-  lines it concerns, if any. A check left out is never reported as clean.
+  (`morphology_unavailable`, `morphology_failed`, `segment_too_long`), the
+  lines it concerns, if any (the first 50 of them), and, when installing the
+  engine would make it run, the command that does. A rule that its genre turns
+  off, or that needs a stance the call did not give, is not listed: it was
+  never meant to run. A check left out is never reported as clean.
 - `conventions`: each convention's value and its source (`argument`,
   `setting`, `document` or `unset`).
 - `findings`, in order of position: `check`, `rule`, `severity`, `line` and
@@ -799,6 +811,12 @@ Limits:
 - **Pins**: Python 3.12.13, SudachiPy 0.6.11 and `sudachidict_core` 20260723,
   the last dictionary SudachiPy 0.6 reads. A release runs the analyzer it was
   tested with, so a dictionary update never moves a finding silently.
+- **The engine runs only when a rule needs it.** A call whose rules that are
+  on and asked for need no tokens starts nothing, so a call that checks only
+  notation costs no Python start. The segments are the blocks the rules read,
+  with masked characters and line breaks blanked, so every token's offset is an
+  offset in the text. Those blocks are paragraphs and list items; headings,
+  table rows and quotations are not sent.
 - **One engine call per tool call.** The venv's interpreter runs the
   package's bridge through the runner: one JSON request on standard input
   (the segments to analyze and split mode C), one JSON reply on standard
