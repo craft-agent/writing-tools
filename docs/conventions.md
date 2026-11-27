@@ -658,13 +658,13 @@ and every entry point checks them the same way.
 
 ## Checks
 
-| Check         | Reports                                                                                                     |
-| ------------- | ----------------------------------------------------------------------------------------------------------- |
-| `notation`    | typography and spelling: spacing, widths, punctuation, quotation marks, ranges, long vowels, counters       |
-| `expression`  | stock phrasing, translationese, monotonous rhythm and endings, formatting density, wording and register mix |
-| `readability` | long sentences, runs of kanji, chained の, double negatives, lists buried in a sentence, comma density      |
-| `outline`     | an inventory: the heading tree, each section's size, and the share of bold, list and heading lines          |
-| `terms`       | an inventory: acronyms, katakana terms and proper nouns, how often each appears and whether it is glossed   |
+| Check         | Reports                                                                                                                                  |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `notation`    | typography and spelling: spacing, widths, punctuation, quotation marks, ranges, long vowels, counters                                    |
+| `expression`  | stock phrasing, translationese, monotonous rhythm and endings, repeated openings and words, formatting density, wording and register mix |
+| `readability` | long sentences, runs of kanji, short clauses in a row, chained の, double negatives, lists buried in a sentence                          |
+| `outline`     | an inventory: the headings with their levels and section sizes, and the share of bold, list and heading lines                            |
+| `terms`       | an inventory: acronyms, katakana words and Latin names, the forms of each, how often each appears and whether it is glossed              |
 
 `compare` runs the revision checks: numbers, names and content words found in
 only one of the two texts, obligation, conjecture and emphasis markers added
@@ -674,7 +674,17 @@ endings moved against `stance`.
 - **Checks are grouped by what they tell a writer**, not by how they work. A
   writer fixing the typography reads `notation`; one fixing the voice reads
   `expression`. The inventories return figures and draw no finding: a heading
-  tree is neither right nor wrong.
+  tree is neither right nor wrong, and a level it skips shows in the levels it
+  lists.
+- **`terms` reads characters, not tokens.** Acronyms, katakana words and
+  Latin names are found by their characters, so the inventory is whole
+  without the engine; a Japanese proper noun, which only the engine could
+  tell, is not listed. Forms that differ only by a closing ー or by width are
+  one term with the count of each; a loanword and its native equivalent are a
+  choice of style and stay two terms.
+- **Nested modifiers are not checked.** No rule finds them reliably without a
+  dependency parse, and one that guessed would report sentences that read
+  well.
 - **Every rule has an id**, snake_case and unique across the checks, which the
   `rules` and `exclude_rules` lists, a finding and the skill name. Renaming one
   breaks a setting, so it is a breaking change.
@@ -737,11 +747,14 @@ value is one of those listed; any other is refused as `invalid_argument`.
   `invalid_argument`, since a misspelt id would silently do nothing.
 - **Thresholds** are bounded whole numbers; unset, the genre's value applies:
 
-  | Setting           | Bounds | Decides                                                     |
-  | ----------------- | ------ | ----------------------------------------------------------- |
-  | `sentence_length` | 20–400 | the characters past which a sentence is reported as long    |
-  | `kanji_run`       | 4–20   | the kanji in a row past which a run is reported             |
-  | `no_chain`        | 2–10   | the case-marking の in a row past which a chain is reported |
+  | Setting           | Bounds | Unset             | Decides                                                     |
+  | ----------------- | ------ | ----------------- | ----------------------------------------------------------- |
+  | `sentence_length` | 20–400 | 90, 110 in essays | the characters past which a sentence is reported as long    |
+  | `kanji_run`       | 4–20   | 6                 | the kanji in a row past which a run is reported             |
+  | `no_chain`        | 2–10   | 2                 | the case-marking の in a row past which a chain is reported |
+
+  A setting holds every genre to its value. The defaults were set on a small
+  set of texts; a writer whose texts read well past them sets their own.
 
 ## The report
 
