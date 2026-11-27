@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { invoke } from "../../tool"
 import { writingTextRead } from "../read"
+import { READABILITY_TOKEN_RULES, unavailableReadability } from "./readability.tokens.testing"
 
 const CTX = { cwd: process.cwd() }
 
@@ -20,10 +21,10 @@ describe("writing_text_read with the readability check", () => {
     expect(report.counts.by_check.readability).toEqual({ critical: 0, warn: 0, info: 1 })
   })
 
-  test("runs alone, reads no tokens and leaves nothing in not_run", async () => {
+  test("runs alone, and lists the rules that read tokens as not run without an engine", async () => {
     const report = await readability("朝起きて、顔を洗って、服を着て、家を出た。")
     expect(report.checks).toEqual(["readability"])
-    expect(report.not_run).toEqual([])
+    expect(report.not_run).toEqual(unavailableReadability(...READABILITY_TOKEN_RULES))
     expect(report.findings).toEqual([
       {
         check: "readability",

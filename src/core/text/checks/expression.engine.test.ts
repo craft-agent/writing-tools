@@ -9,6 +9,7 @@ import { writingTextRead } from "../read"
 import type { TextReadInput } from "../schemas"
 import { expressionCheck } from "./expression"
 import { TOKEN_RULES, unavailable } from "./expression.tokens.testing"
+import { ALL_TOKEN_RULES_NOT_RUN, READABILITY_TOKEN_RULES, unavailableReadability } from "./readability.tokens.testing"
 
 afterEach(removeTempDirs)
 
@@ -23,14 +24,17 @@ describe("the rules that read tokens, without an engine", () => {
   test("report nothing and are listed as not run, the rule that is off by default only when `rules` names it", async () => {
     const plain = await invoke(writingTextRead, call(), CTX)
     expect(plain.findings).toEqual([])
-    expect(plain.not_run).toEqual(unavailable(...TOKEN_RULES))
+    expect(plain.not_run).toEqual(ALL_TOKEN_RULES_NOT_RUN)
     const named = await invoke(writingTextRead, call({ rules: ["inanimate_subject"] }), CTX)
     expect(named.findings).toEqual([])
-    expect(named.not_run).toEqual(unavailable(...TOKEN_RULES, "inanimate_subject"))
+    expect(named.not_run).toEqual([
+      ...unavailable(...TOKEN_RULES, "inanimate_subject"),
+      ...unavailableReadability(...READABILITY_TOKEN_RULES),
+    ])
   })
 
   test("are not listed when excluded, or when their check is not asked for", async () => {
-    const excluded = call({ exclude_rules: TOKEN_RULES })
+    const excluded = call({ exclude_rules: [...TOKEN_RULES, ...READABILITY_TOKEN_RULES] })
     expect((await invoke(writingTextRead, excluded, CTX)).not_run).toEqual([])
     const notation = call({ checks: ["notation"] })
     expect((await invoke(writingTextRead, notation, CTX)).not_run).toEqual([])
