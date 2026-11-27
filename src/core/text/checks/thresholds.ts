@@ -58,6 +58,29 @@ export const CONTRAST_PER_SENTENCE: Record<Genre, number> = {
   essay: 0.05,
 }
 
+/** The sentences that open with the same two words at which `repeated_lead` reports. */
+export const LEAD_REPEAT: Record<Genre, number> = {
+  general: 6,
+  technical: 7,
+  business: 7,
+  essay: 5,
+}
+
+/** The readable characters `lexical_repetition` needs before it speaks: the range of a short text is not a habit. */
+export const LEXICAL_MIN_CHARS = 4000
+
+/** The content words `lexical_repetition` needs before it measures their range. */
+export const LEXICAL_MIN_WORDS = 100
+
+/** The type-token ratio at which a stretch of words ends a factor in MTLD; 0.72 is the value its authors give. */
+export const MTLD_FACTOR = 0.72
+
+/** The MTLD below which `lexical_repetition` reports: the text reuses a small stock of words for its length. */
+export const MTLD_BELOW = 40
+
+/** How many of the most repeated words `lexical_repetition` names. */
+export const LEXICAL_TOP_WORDS = 3
+
 /** When the sentence lengths of a text are too even for `uniform_sentence_length`. */
 export type UniformLimits = {
   /** The sentences the text needs before its lengths are judged. */

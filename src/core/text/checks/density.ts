@@ -9,7 +9,7 @@ const PERCENT = 100
 const PER_THOUSAND = 1000
 
 /** The non-whitespace characters of the lines, a masked unit counting as one. */
-function readableChars(lines: readonly LineView[]): number {
+export function readableChars(lines: readonly LineView[]): number {
   return lines.reduce((sum, { text }) => sum + [...text.replace(WHITESPACE, "")].length, 0)
 }
 
