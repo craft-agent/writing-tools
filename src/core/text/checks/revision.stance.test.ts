@@ -26,7 +26,7 @@ describe("the revision check, endings moved against the stance", () => {
   test("runs only with a stance, and is not listed in not_run without one", async () => {
     const report = await revise("ログを確認します。", "ログを確認してください。")
     expect(report.findings).toEqual([])
-    expect(report.not_run).toEqual([])
+    expect(report.not_run.map(({ rule }) => rule)).not.toContain("stance_ending_moved")
   })
 
   test("holds each stance to its own kinds of ending", async () => {

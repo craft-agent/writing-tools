@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { isToolError } from "../errors"
 import { invoke } from "../tool"
-import { revise } from "./checks/revision.testing"
+import { revise, WORDS_UNAVAILABLE } from "./checks/revision.testing"
 import { MAX_TEXT_BYTES } from "./limits"
 import { writingTextRead } from "./read"
 
@@ -73,7 +73,7 @@ describe("writing_text_read, the report of compare", () => {
       checks: ["revision"],
       genre: "general",
       stance: null,
-      not_run: [],
+      not_run: WORDS_UNAVAILABLE,
     })
     expect(report.counts.by_check.revision).toEqual({ critical: 1, warn: 1, info: 0 })
     expect(report.counts.by_check.notation).toEqual({ critical: 0, warn: 0, info: 0 })

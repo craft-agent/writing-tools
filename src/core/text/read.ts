@@ -57,7 +57,7 @@ export const writingTextRead = defineTool({
   title: "Inspect Japanese text",
   description:
     `Inspect Japanese text, or compare a revision with its original. \`inspect\` takes \`text\` (Markdown or plain text, at most ${MAX_TEXT_BYTES.toLocaleString("en-US")} bytes of UTF-8) and returns findings: the rule id, a severity (\`critical\`, \`warn\` or \`info\`), line and column, an excerpt, the reason and a reference to the skill's guide. ` +
-    "`compare` takes the revision as `text` and its `original`, and reports what may change the meaning (numbers, names, hedges), with `original_line` and `original_column`. " +
+    "`compare` takes the revision as `text` and its `original`, and reports what may change the meaning (numbers, names, content words, hedges), with `original_line` and `original_column`. " +
     "It has no house style: a check reports only a text that mixes two conventions, and a rule that prefers one wording to another is off unless `rules` names it. " +
     `The conventions (${CONVENTION_LIST}) hold the text to a value for this call, over the setting of the same name; \`rules\` and \`exclude_rules\` replace theirs. ` +
     `\`checks\` narrows \`inspect\`; \`limit\` (${DEFAULT_LIMIT} by default, ${MAX_LIMIT} at most) caps the findings, highest severity kept; \`counts\` cover all and \`cut\` says how many were left out. ` +
@@ -74,6 +74,6 @@ export const writingTextRead = defineTool({
     checkSize("text", args.text, verb)
     if (original === undefined) return inspect(readDocument(args.text), args, ctx.options ?? {}, CHECK_SPECS, ctx)
     checkSize("original", original, verb)
-    return compare(readDocument(args.text), readDocument(original), args, ctx.options ?? {})
+    return compare(readDocument(args.text), readDocument(original), args, ctx.options ?? {}, CHECK_SPECS, ctx)
   },
 })

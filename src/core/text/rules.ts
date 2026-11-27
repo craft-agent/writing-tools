@@ -90,11 +90,13 @@ export type Thresholds = {
 export type Comparison = {
   original: TextDocument
   alignment: Alignment
+  /** The engine's tokens of the original, as `CheckContext.tokens` holds the revision's: by the index of the block in `original.blocks`. */
+  originalTokens: ReadonlyMap<number, readonly Token[]>
 }
 
 /** What a check reads: the document, what each convention is held to, which rules run, the genre, the thresholds and the stance, and the tokens. */
 export type CheckContext = {
-  /** The text the call inspects; for `compare`, the revision. */
+  /** The text the call inspects; for `compare`, the revision, whose tokens `tokens` holds. */
   doc: TextDocument
   conventions: ResolvedConventions
   /** Whether a rule of the registry is on for this call; a check reports only the rules that are. */

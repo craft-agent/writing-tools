@@ -24,7 +24,7 @@ function labelOf({ pos, surface, dictionary }: Token): string {
 }
 
 /** The words of the text in order that carry content: by the dictionary form, so an inflected word counts as one. */
-function contentWords(doc: TextDocument, tokens: BlockTokens): Token[] {
+export function contentWords(doc: TextDocument, tokens: BlockTokens): Token[] {
   return [...readableTokens(doc, tokens)]
     .sort(([a], [b]) => a - b)
     .flatMap(([, list]) => list)

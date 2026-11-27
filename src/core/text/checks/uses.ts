@@ -1,7 +1,13 @@
 import type { Alignment, Side, Status } from "../align"
+import { leadOf } from "../excerpt"
 
 /** One use of a number or a name in a text: the key that makes its forms one value, the form as written, and its span in the text. */
 export type Use = { key: string; form: string; start: number; end: number }
+
+/** The use as a reason quotes it: its key in double quotes, with how it was written when that differs from the key. */
+export function labelOf({ key, form }: Use): string {
+  return key === form ? `"${key}"` : `"${key}" (written ${leadOf(form)})`
+}
 
 /** How much a use is to blame for a count that differs: one in a sentence with no pair most, one in a changed pair or outside every sentence next, one in an unchanged pair least. */
 const BLAME: Readonly<Record<Status | "outside", number>> = { unpaired: 2, changed: 1, outside: 1, unchanged: 0 }
