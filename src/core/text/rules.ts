@@ -57,7 +57,17 @@ export type RawFinding = {
   severity?: Severity
 }
 
-/** What a check reads: the document, what each convention is held to, which rules run, the genre and the stance, and the tokens. */
+/** The length thresholds the call holds the text to, by the name of the setting that moves each. */
+export type Thresholds = {
+  /** The characters past which a sentence is long. */
+  sentence_length: number
+  /** The kanji in a row past which a run is reported. */
+  kanji_run: number
+  /** The case-marking の in a row past which a chain is reported. */
+  no_chain: number
+}
+
+/** What a check reads: the document, what each convention is held to, which rules run, the genre, the thresholds and the stance, and the tokens. */
 export type CheckContext = {
   doc: TextDocument
   conventions: ResolvedConventions
@@ -65,6 +75,8 @@ export type CheckContext = {
   enabled(rule: string): boolean
   /** The genre the call holds the text to. */
   genre: Genre
+  /** The thresholds the call holds the text to: the settings' values, else the genre's. */
+  thresholds: Thresholds
   /** The stance the call holds the sentence endings to; `undefined` when it gave none. */
   stance: Stance | undefined
   /**

@@ -71,7 +71,14 @@ class OptionFlagsTest(unittest.TestCase):
             "long_vowel",
             "counter_ka",
         )
-        self.assertEqual(set(project.OPTIONS), {"state_dir", *conventions, "rules", "exclude_rules"})
+        thresholds = {
+            "sentence_length": (20, 400),
+            "kanji_run": (4, 20),
+            "no_chain": (2, 10),
+        }
+        self.assertEqual(set(project.OPTIONS), {"state_dir", *conventions, "rules", "exclude_rules", *thresholds})
+        for name, (low, high) in thresholds.items():
+            self.assertEqual(project.OPTIONS[name], {"type": "number", "integer": True, "min": low, "max": high})
         for name in conventions:
             declaration = project.OPTIONS[name]
             self.assertIsInstance(declaration, dict)
