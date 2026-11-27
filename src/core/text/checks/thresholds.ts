@@ -47,6 +47,17 @@ export const CHOPPY: Record<Genre, ChoppyLimits> = {
   essay: { short: 22, unlinked: 38, minRun: 5 },
 }
 
+/** The contrast constructions `contrast_overuse` needs before it speaks, so a few uses in a short text are never a habit. */
+export const CONTRAST_MIN_COUNT = 3
+
+/** The contrast constructions per counted sentence at which `contrast_overuse` reports. */
+export const CONTRAST_PER_SENTENCE: Record<Genre, number> = {
+  general: 0.05,
+  technical: 0.08,
+  business: 0.05,
+  essay: 0.05,
+}
+
 /** When the sentence lengths of a text are too even for `uniform_sentence_length`. */
 export type UniformLimits = {
   /** The sentences the text needs before its lengths are judged. */
