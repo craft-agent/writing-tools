@@ -610,6 +610,13 @@ and every entry point checks them the same way.
   default.** It runs only when the `rules` setting or argument names it. What
   one team calls stock phrasing is another's plain usage, and a check that
   fires on legitimate text teaches the agent to rewrite good prose.
+- **A phrase that adds length without adding meaning is not a preference.**
+  `stock_phrase` and `translationese` are on by default, at `info`, because
+  each phrase on their lists has a shorter form that says the same
+  (`することができる` and `できる`), so no reading is lost by the shorter one.
+  A phrase whose shorter form changes the meaning, or that one register or
+  field uses as its plain word, stays off the lists; a vague buzzword or a
+  metaphor is a choice of tone, and its rule is off until `rules` names it.
 - **No caller, harness or agent is named** in the tool, its descriptions, its
   messages or the skill. The tool reports; what a caller does with a finding
   is the caller's.
@@ -799,6 +806,11 @@ Limits:
 - **Pins**: Python 3.12.13, SudachiPy 0.6.11 and `sudachidict_core` 20260723,
   the last dictionary SudachiPy 0.6 reads. A release runs the analyzer it was
   tested with, so a dictionary update never moves a finding silently.
+- **The engine runs only when a rule needs it.** A call whose rules that are
+  on and asked for need no tokens starts nothing, so a call that checks only
+  notation costs no Python start. The segments are the blocks the rules read,
+  with masked characters blanked, so every token's offset is an offset in the
+  text.
 - **One engine call per tool call.** The venv's interpreter runs the
   package's bridge through the runner: one JSON request on standard input
   (the segments to analyze and split mode C), one JSON reply on standard
