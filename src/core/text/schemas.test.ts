@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { CONVENTION_NAMES, CONVENTIONS } from "./conventions"
 import { MAX_LIMIT } from "./limits"
-import { GENRES, STANCES } from "./rules"
+import { CHECKS, GENRES, STANCES } from "./rules"
 import { textReadInput } from "./schemas"
 
 const BASE = { method: "inspect", text: "テスト" }
@@ -35,10 +35,10 @@ describe("the input schema", () => {
   })
 
   test("takes the checks that exist, at least one", () => {
-    expect(textReadInput.safeParse({ ...BASE, checks: ["notation", "expression", "readability"] }).success).toBe(true)
+    expect(textReadInput.safeParse({ ...BASE, checks: [...CHECKS] }).success).toBe(true)
+    expect(textReadInput.safeParse({ ...BASE, checks: ["outline", "terms"] }).success).toBe(true)
     expect(textReadInput.safeParse({ ...BASE, checks: [] }).success).toBe(false)
-    expect(textReadInput.safeParse({ ...BASE, checks: ["outline"] }).success).toBe(false)
-    expect(textReadInput.safeParse({ ...BASE, checks: ["terms"] }).success).toBe(false)
+    expect(textReadInput.safeParse({ ...BASE, checks: ["glossary"] }).success).toBe(false)
   })
 
   test("takes the rule lists as lists of text", () => {

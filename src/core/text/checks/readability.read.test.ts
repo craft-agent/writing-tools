@@ -14,7 +14,7 @@ const readability = (text: string, options = {}, extra = {}) =>
 describe("writing_text_read with the readability check", () => {
   test("is one of the checks that run when none is named, and counts its findings by severity", async () => {
     const report = await invoke(writingTextRead, { method: "inspect", text: "情報処理技術者を募る。" }, CTX)
-    expect(report.checks).toEqual(["notation", "expression", "readability"])
+    expect(report.checks).toEqual(["notation", "expression", "readability", "outline", "terms"])
     expect(report.findings.map(({ check, rule, severity }) => [check, rule, severity])).toEqual([
       ["readability", "kanji_run", "info"],
     ])
