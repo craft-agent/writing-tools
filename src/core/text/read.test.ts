@@ -46,6 +46,9 @@ describe("writing_text_read", () => {
       "is not clean",
       "`rules`",
       "the engine install command the result names",
+      "`compare`",
+      "`original`",
+      "`original_line`",
     ]) {
       expect(description).toContain(phrase)
     }
@@ -72,6 +75,7 @@ describe("writing_text_read", () => {
           readability: { critical: 0, warn: 0, info: 0 },
           outline: { critical: 0, warn: 0, info: 0 },
           terms: { critical: 0, warn: 0, info: 0 },
+          revision: { critical: 0, warn: 0, info: 0 },
         },
         by_severity: { critical: 0, warn: 0, info: 0 },
       },
@@ -143,9 +147,7 @@ describe("writing_text_read", () => {
   })
 
   test("refuses a bad call before reading the text", async () => {
-    expect((await refusal(invoke(writingTextRead, { method: "compare", text: "a" }, CTX))).code).toBe(
-      "invalid_argument",
-    )
+    expect((await refusal(invoke(writingTextRead, { method: "diff", text: "a" }, CTX))).code).toBe("invalid_argument")
     expect(
       (await refusal(invoke(writingTextRead, { method: "inspect", text: "a", register: "casual" }, CTX))).code,
     ).toBe("invalid_argument")

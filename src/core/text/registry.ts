@@ -2,6 +2,7 @@ import { expressionCheck } from "./checks/expression"
 import { notationCheck } from "./checks/notation"
 import { outlineCheck } from "./checks/outline"
 import { readabilityCheck } from "./checks/readability"
+import { revisionCheck } from "./checks/revision"
 import { termsCheck } from "./checks/terms"
 import type { CheckSpec } from "./rules"
 
@@ -12,4 +13,5 @@ export const CHECK_SPECS: readonly CheckSpec[] = [
   readabilityCheck,
   outlineCheck,
   termsCheck,
+  revisionCheck,
 ]

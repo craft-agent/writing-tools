@@ -24,12 +24,18 @@ import {
   type Outline,
   type SeverityCounts,
   type Term,
+  type TextMethod,
   type TextReadOutput,
 } from "./schemas"
 
 /** What a report is built from. */
 export type ReportInput = {
+  /** The method of the call, which the report names. */
+  method: TextMethod
+  /** The text the findings are in; for `compare`, the revision. */
   doc: TextDocument
+  /** The original of a `compare` call: the places and excerpts of what the revision dropped are read from it. */
+  original?: TextDocument
   /** The checks that ran. */
   checks: readonly CheckName[]
   /** The genre the call was held to, resolved. */
@@ -80,7 +86,8 @@ function rankOf(severity: Severity): number {
 function inPositionOrder(a: RawFinding, b: RawFinding): number {
   if (a.start !== b.start) return a.start - b.start
   if (a.rule !== b.rule) return a.rule < b.rule ? -1 : 1
-  return a.end - b.end
+  if (a.end !== b.end) return a.end - b.end
+  return (a.original?.start ?? 0) - (b.original?.start ?? 0)
 }
 
 function emptyCounts(): SeverityCounts {
@@ -112,15 +119,25 @@ function withinLimit(candidates: readonly Candidate[], limit: number): Candidate
   return byImportance.slice(0, limit).sort((a, b) => a.order - b.order)
 }
 
-function findingOf(doc: TextDocument, { raw, rule, severity }: Candidate): Finding {
+function findingOf(doc: TextDocument, original: TextDocument | undefined, { raw, rule, severity }: Candidate): Finding {
   const { line, column } = locate(doc, raw.start)
+  const place = raw.original
+  if (place !== undefined && original === undefined) {
+    throw new Error(`A check reported a place in the original for the rule "${raw.rule}" without one being compared.`)
+  }
+  const there = place === undefined || original === undefined ? undefined : locate(original, place.start)
+  const quoted =
+    place?.excerpt === true && original !== undefined
+      ? { text: original.text, span: place }
+      : { text: doc.text, span: raw }
   return {
     check: rule.check,
     rule: rule.id,
     severity,
     line,
     column,
-    excerpt: excerptOf(doc.text, raw.start, raw.end),
+    ...(there !== undefined ? { original_line: there.line, original_column: there.column } : {}),
+    excerpt: excerptOf(quoted.text, quoted.span.start, quoted.span.end),
     reason: raw.reason,
     reference: rule.reference,
   }
@@ -202,12 +219,12 @@ function termDropOrder(kept: readonly Term[]): number[] {
 export function buildReport(input: ReportInput): TextReadOutput {
   const candidates = candidatesOf(input.found, input.specs)
   const kept = withinLimit(candidates, input.limit)
-  const findings = kept.map((candidate) => findingOf(input.doc, candidate))
+  const findings = kept.map((candidate) => findingOf(input.doc, input.original, candidate))
   const headings = (input.outline?.headings ?? []).slice(0, MAX_OUTLINE_ENTRIES)
   const terms = mostUsed(input.terms ?? [])
   const shell: TextReadOutput = {
     report_version: REPORT_VERSION,
-    method: "inspect",
+    method: input.method,
     checks: [...input.checks],
     genre: input.genre,
     stance: input.stance ?? null,
