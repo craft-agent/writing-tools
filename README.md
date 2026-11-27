@@ -192,6 +192,13 @@ the headings with their section sizes and the share of bold, list and heading
 lines, and the acronyms, Latin names and katakana words with their forms,
 counts and whether each is glossed.
 
+`compare` takes the revision as `text` and the `original` it was made from, and
+needs no engine. It aligns the sentences of the two texts, then reports the
+numbers and names the revision lost (`critical`) or added (`warn`), counted over
+the whole text, so a sentence that only moved changes nothing. Each finding
+gives its place in the revision, and in the original where it has one. It takes
+no `checks`; `inspect` refuses `original`.
+
 Install [uv](https://docs.astral.sh/uv/) first. The command creates
 `<state_dir>/engine/venv` from the package's hash-locked requirements, on its
 pinned Python. It installs wheels only and builds nothing from source; where

@@ -679,16 +679,23 @@ changed, and endings moved against `stance`.
   text, so code, URLs, quotations and the rest are never compared.
 - **Sentences are aligned before they are compared.** A sentence found
   unchanged in both texts pairs with itself, in order; the changed sentences
-  between two such pairs pair by their likeness. Markers, leading words and
-  endings are compared within a pair, or counted dropped or added with a
+  between two such pairs pair by their likeness. Two sentences are the same
+  when their text is, once masked characters and all whitespace are taken out
+  and widths are folded (NFKC), so a text wrapped elsewhere, spaced
+  differently around a Latin word or written in another width has no changed
+  sentence. Likeness is the Dice coefficient of the character bigrams, at
+  least 0.5, the likest pair first and none crossing another. Markers,
+  leading words and endings are compared within a pair, or counted dropped or added with a
   sentence that has no pair, so one marker dropped here and another added
   there are two changes, not none. Numbers, names and content words are
   compared over the whole text, so a sentence that only moved changes
   nothing.
 - **A number is its value.** Full-width digits, comma grouping and kanji
   numerals before a unit or a counter are read as the number they write, so
-  `1,000` and `１０００` are one number. Kanji numerals in words such as 一般
-  or 統一 are no numbers.
+  `1,000` and `１０００` are one number. Digits followed by 万, 億 or 兆
+  (`3万`, 30000) are a number without a unit. Kanji numerals in words such as
+  一般 or 統一 are no numbers, and digits inside a Latin word (`HTTP2`) are
+  none either.
 - **What was lost costs more than what was added.** A number or a name the
   revision lost is `critical`; one it added, a marker it changed and an
   ending it moved against the stance are `warn`, since a reader takes them as
@@ -773,7 +780,9 @@ value is one of those listed; any other is refused as `invalid_argument`.
 - **Rule lists.** `rules` turns on rules that are off by default, and
   `exclude_rules` turns off any rule; an exclusion wins. Both are `list`
   settings and arguments. An id the package does not have is refused as
-  `invalid_argument`, since a misspelt id would silently do nothing.
+  `invalid_argument`, since a misspelt id would silently do nothing. An id of
+  any check is known to both methods, and a call applies those of the checks
+  it runs, so one setting serves `inspect` and `compare`.
 - **Thresholds** are bounded whole numbers; unset, the genre's value applies:
 
   | Setting           | Bounds | Unset             | Decides                                                     |
@@ -799,7 +808,8 @@ Both methods return one object:
   off, or that needs a stance the call did not give, is not listed: it was
   never meant to run. A check left out is never reported as clean.
 - `conventions`: each convention's value and its source (`argument`,
-  `setting`, `document` or `unset`).
+  `setting`, `document` or `unset`). `compare` reads none, so every entry is
+  `unset`.
 - `findings`, in order of position: `check`, `rule`, `severity`, `line` and
   `column` (1-based, in characters), `excerpt`, `reason` and `reference`;
   `compare` adds `original_line` and `original_column` where the change has
