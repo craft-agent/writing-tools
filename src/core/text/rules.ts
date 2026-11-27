@@ -1,10 +1,14 @@
 import type { Token } from "../engine/tokens"
+import type { Alignment } from "./align"
 import type { ConventionName, ResolvedConventions } from "./conventions"
 import type { TextDocument } from "./model"
 import type { Outline, Term } from "./schemas"
 
-/** The checks that exist, in the order the report lists them. `outline` and `terms` are inventories: they have no rules and draw no finding. */
-export const CHECKS = ["notation", "expression", "readability", "outline", "terms"] as const
+/** The checks of `inspect`, which its `checks` argument may name, in the order the report lists them. `outline` and `terms` are inventories: they have no rules and draw no finding. */
+export const INSPECT_CHECKS = ["notation", "expression", "readability", "outline", "terms"] as const
+
+/** The checks that exist, in the order the report lists them: those of `inspect`, then `revision`, which only `compare` runs. */
+export const CHECKS = [...INSPECT_CHECKS, "revision"] as const
 
 /** The name of a check. */
 export type CheckName = (typeof CHECKS)[number]
@@ -48,7 +52,19 @@ export type RuleSpec = {
   reference: string
 }
 
-/** What a rule found, before the report places it: offsets into `doc.text`, `end` exclusive. */
+/** A place in the original text of a `compare` call: offsets into its text, `end` exclusive. */
+export type OriginalPlace = {
+  start: number
+  end: number
+  /** `true` when the excerpt is read from the original, as for what the revision dropped; the revision otherwise. */
+  excerpt?: true
+}
+
+/**
+ * What a rule found, before the report places it: offsets into `doc.text`,
+ * `end` exclusive. For what a revision dropped, `start` and `end` are where it
+ * would have stood in the revision.
+ */
 export type RawFinding = {
   rule: string
   start: number
@@ -56,6 +72,8 @@ export type RawFinding = {
   reason: string
   /** Overrides the rule's severity for this finding. */
   severity?: Severity
+  /** Where the change stands in the original, for a finding of `compare` that has a place there. */
+  original?: OriginalPlace
 }
 
 /** The length thresholds the call holds the text to, by the name of the setting that moves each. */
@@ -68,8 +86,15 @@ export type Thresholds = {
   no_chain: number
 }
 
+/** The original a `compare` call holds the revision against, and how the sentences of the two line up. */
+export type Comparison = {
+  original: TextDocument
+  alignment: Alignment
+}
+
 /** What a check reads: the document, what each convention is held to, which rules run, the genre, the thresholds and the stance, and the tokens. */
 export type CheckContext = {
+  /** The text the call inspects; for `compare`, the revision. */
   doc: TextDocument
   conventions: ResolvedConventions
   /** Whether a rule of the registry is on for this call; a check reports only the rules that are. */
@@ -87,6 +112,8 @@ export type CheckContext = {
    * it; a rule that needs tokens reads only the blocks present.
    */
   tokens: ReadonlyMap<number, readonly Token[]>
+  /** Present exactly in a `compare` call, which the `revision` check reads; the checks of `inspect` ignore it. */
+  comparison?: Comparison
 }
 
 /**

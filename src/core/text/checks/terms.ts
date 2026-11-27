@@ -3,7 +3,8 @@ import { leadOf } from "../excerpt"
 import type { TextDocument } from "../model"
 import type { CheckSpec } from "../rules"
 import type { Term } from "../schemas"
-import { readableLines } from "./lines"
+import { readableLines, type LineView } from "./lines"
+import type { Use } from "./uses"
 
 /**
  * The patterns of the `terms` inventory, as the package's own data. Terms are
@@ -147,6 +148,39 @@ function termOf(doc: TextDocument, entry: Entry): Term {
   }
 }
 
+/** One use of a term, with the line it stands in and where in that line. */
+type TermMatch = { kind: Term["kind"]; key: string; form: string; start: number; line: LineView; at: number }
+
+/** Every use of an acronym, a Latin name or a katakana word in the readable lines, in order of position. */
+function matchesOf(doc: TextDocument): TermMatch[] {
+  const uses: TermMatch[] = []
+  for (const line of readableLines(doc)) {
+    const matches = [...line.text.matchAll(CANDIDATE)]
+    for (const [at, match] of matches.entries()) {
+      const found = classify(match)
+      if (found === undefined || (found.alone && hasLatinNeighbour(line.text, matches, at))) continue
+      uses.push({
+        kind: found.kind,
+        key: found.key,
+        form: match[0],
+        start: line.start + match.index,
+        line,
+        at: match.index,
+      })
+    }
+  }
+  return uses
+}
+
+/**
+ * Every use of a term in the readable lines, in order of position, as
+ * {@link termsOf} finds them: the key is the one that makes forms that differ
+ * by width or a closing ー one term.
+ */
+export function termUsesOf(doc: TextDocument): Use[] {
+  return matchesOf(doc).map(({ key, form, start }) => ({ key, form, start, end: start + form.length }))
+}
+
 /**
  * Every acronym, Latin name and katakana word of the prose, list items,
  * headings and table rows, in order of first use. A Latin word with an
@@ -159,25 +193,12 @@ function termOf(doc: TextDocument, entry: Entry): Term {
  */
 export function termsOf(doc: TextDocument): Term[] {
   const entries = new Map<string, Entry>()
-  for (const { start, text } of readableLines(doc)) {
-    const matches = [...text.matchAll(CANDIDATE)]
-    for (const [at, match] of matches.entries()) {
-      const found = classify(match)
-      if (found === undefined || (found.alone && hasLatinNeighbour(text, matches, at))) continue
-      const form = match[0]
-      const end = match.index + form.length
-      const entry = entries.get(found.key) ?? {
-        kind: found.kind,
-        forms: new Map<string, number>(),
-        count: 0,
-        first: start + match.index,
-        glossed: false,
-      }
-      entry.count++
-      entry.forms.set(form, (entry.forms.get(form) ?? 0) + 1)
-      entry.glossed ||= isGlossed(text, match.index, end)
-      entries.set(found.key, entry)
-    }
+  for (const { kind, key, form, start, line, at } of matchesOf(doc)) {
+    const entry = entries.get(key) ?? { kind, forms: new Map<string, number>(), count: 0, first: start, glossed: false }
+    entry.count++
+    entry.forms.set(form, (entry.forms.get(form) ?? 0) + 1)
+    entry.glossed ||= isGlossed(line.text, at, at + form.length)
+    entries.set(key, entry)
   }
   return [...entries.values()].map((entry) => termOf(doc, entry))
 }

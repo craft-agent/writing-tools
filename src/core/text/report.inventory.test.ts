@@ -24,6 +24,7 @@ const MEASURES: Outline["measures"] = {
 
 function build(extra: Partial<ReportInput> = {}) {
   return buildReport({
+    method: "inspect",
     doc: readDocument("あ".repeat(50)),
     checks: ["notation"],
     genre: "general",

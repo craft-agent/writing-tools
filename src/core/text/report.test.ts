@@ -17,6 +17,7 @@ const SPECS = [
 
 function build(text: string, raws: RawFinding[], limit = 50) {
   return buildReport({
+    method: "inspect",
     doc: readDocument(text),
     checks: ["notation", "expression"],
     genre: "general",
@@ -32,6 +33,7 @@ function build(text: string, raws: RawFinding[], limit = 50) {
 describe("buildReport", () => {
   test("carries the version, method, checks, note, conventions and not_run as given", () => {
     const report = buildReport({
+      method: "inspect",
       doc: readDocument("x"),
       checks: ["expression"],
       genre: "technical",
@@ -104,6 +106,7 @@ describe("buildReport", () => {
         readability: { critical: 0, warn: 0, info: 0 },
         outline: { critical: 0, warn: 0, info: 0 },
         terms: { critical: 0, warn: 0, info: 0 },
+        revision: { critical: 0, warn: 0, info: 0 },
       },
       by_severity: { critical: 1, warn: 1, info: 2 },
     })

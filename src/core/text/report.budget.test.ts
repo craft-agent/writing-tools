@@ -21,6 +21,7 @@ const LONG_REASON = "r".repeat(600)
 
 function build(raws: RawFinding[], limit = MAX_LIMIT, notRun: NotRun[] = []) {
   return buildReport({
+    method: "inspect",
     doc: readDocument(TEXT),
     checks: ["notation", "expression"],
     genre: "general",

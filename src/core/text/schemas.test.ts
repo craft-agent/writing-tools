@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { CONVENTION_NAMES, CONVENTIONS } from "./conventions"
 import { MAX_LIMIT } from "./limits"
-import { CHECKS, GENRES, STANCES } from "./rules"
+import { GENRES, INSPECT_CHECKS, STANCES } from "./rules"
 import { textReadInput } from "./schemas"
 
 const BASE = { method: "inspect", text: "テスト" }
@@ -12,7 +12,7 @@ describe("the input schema", () => {
   })
 
   test("refuses a method the tool does not have, and a call without text", () => {
-    expect(textReadInput.safeParse({ ...BASE, method: "compare" }).success).toBe(false)
+    expect(textReadInput.safeParse({ ...BASE, method: "diff" }).success).toBe(false)
     expect(textReadInput.safeParse({ method: "inspect" }).success).toBe(false)
   })
 
@@ -34,8 +34,14 @@ describe("the input schema", () => {
     expect(textReadInput.safeParse({ ...BASE, [name]: "nope" }).success).toBe(false)
   })
 
-  test("takes the checks that exist, at least one", () => {
-    expect(textReadInput.safeParse({ ...BASE, checks: [...CHECKS] }).success).toBe(true)
+  test("takes the method `compare` with its original", () => {
+    expect(textReadInput.strict().safeParse({ ...BASE, method: "compare", original: "元の文" }).success).toBe(true)
+    expect(textReadInput.safeParse({ ...BASE, original: 1 }).success).toBe(false)
+  })
+
+  test("takes the checks of `inspect`, at least one, and not `revision`", () => {
+    expect(textReadInput.safeParse({ ...BASE, checks: [...INSPECT_CHECKS] }).success).toBe(true)
+    expect(textReadInput.safeParse({ ...BASE, checks: ["revision"] }).success).toBe(false)
     expect(textReadInput.safeParse({ ...BASE, checks: ["outline", "terms"] }).success).toBe(true)
     expect(textReadInput.safeParse({ ...BASE, checks: [] }).success).toBe(false)
     expect(textReadInput.safeParse({ ...BASE, checks: ["glossary"] }).success).toBe(false)

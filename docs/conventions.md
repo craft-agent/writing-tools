@@ -641,7 +641,11 @@ and every entry point checks them the same way.
 - **`checks`** is a subset of `notation`, `expression`, `readability`,
   `outline` and `terms`; left out, all of them run. Running every check costs
   one engine call either way, and a caller narrows the list to keep the
-  report short.
+  report short. `compare` takes no `checks`: it runs the `revision` check
+  alone, and a caller who wants the revision itself inspected calls
+  `inspect` on it.
+- **`original`** is the text the revision was made from. `compare` requires
+  it and `inspect` refuses it, so a call never compares by accident.
 - **`genre`** is `general` (the default), `technical`, `business` or `essay`.
   It moves the thresholds of the length and rhythm checks and turns off the
   formatting checks a genre expects to use (lists in technical writing, for
@@ -666,10 +670,36 @@ and every entry point checks them the same way.
 | `outline`     | an inventory: the headings with their levels and section sizes, and the share of bold, list and heading lines                            |
 | `terms`       | an inventory: acronyms, katakana words and Latin names, the forms of each, how often each appears and whether it is glossed              |
 
-`compare` runs the revision checks: numbers, names and content words found in
-only one of the two texts, obligation, conjecture and emphasis markers added
-or dropped, sentences whose leading connective or reference changed, and
-endings moved against `stance`.
+`compare` runs the `revision` check: numbers, names and content words found
+in only one of the two texts, obligation, conjecture and emphasis markers
+added or dropped, sentences whose leading connective or demonstrative
+changed, and endings moved against `stance`.
+
+- **Both texts are read alike.** The original is read as `inspect` reads a
+  text, so code, URLs, quotations and the rest are never compared.
+- **Sentences are aligned before they are compared.** A sentence found
+  unchanged in both texts pairs with itself, in order; the changed sentences
+  between two such pairs pair by their likeness. Two sentences are the same
+  when their text is, once masked characters and all whitespace are taken out
+  and widths are folded (NFKC), so a text wrapped elsewhere, spaced
+  differently around a Latin word or written in another width has no changed
+  sentence. Likeness is the Dice coefficient of the character bigrams, at
+  least 0.5, the likest pair first and none crossing another. Markers,
+  leading words and endings are compared within a pair, or counted dropped or added with a
+  sentence that has no pair, so one marker dropped here and another added
+  there are two changes, not none. Numbers, names and content words are
+  compared over the whole text, so a sentence that only moved changes
+  nothing.
+- **A number is its value.** Full-width digits, comma grouping and kanji
+  numerals before a unit or a counter are read as the number they write, so
+  `1,000` and `１０００` are one number. Digits followed by 万, 億 or 兆
+  (`3万`, 30000) are a number without a unit. Kanji numerals in words such as
+  一般 or 統一 are no numbers, and digits inside a Latin word (`HTTP2`) are
+  none either.
+- **What was lost costs more than what was added.** A number or a name the
+  revision lost is `critical`; one it added, a marker it changed and an
+  ending it moved against the stance are `warn`, since a reader takes them as
+  the writer's; content words and leading words are `info`.
 
 - **Checks are grouped by what they tell a writer**, not by how they work. A
   writer fixing the typography reads `notation`; one fixing the voice reads
@@ -750,7 +780,9 @@ value is one of those listed; any other is refused as `invalid_argument`.
 - **Rule lists.** `rules` turns on rules that are off by default, and
   `exclude_rules` turns off any rule; an exclusion wins. Both are `list`
   settings and arguments. An id the package does not have is refused as
-  `invalid_argument`, since a misspelt id would silently do nothing.
+  `invalid_argument`, since a misspelt id would silently do nothing. An id of
+  any check is known to both methods, and a call applies those of the checks
+  it runs, so one setting serves `inspect` and `compare`.
 - **Thresholds** are bounded whole numbers; unset, the genre's value applies:
 
   | Setting           | Bounds | Unset             | Decides                                                     |
@@ -776,11 +808,16 @@ Both methods return one object:
   off, or that needs a stance the call did not give, is not listed: it was
   never meant to run. A check left out is never reported as clean.
 - `conventions`: each convention's value and its source (`argument`,
-  `setting`, `document` or `unset`).
+  `setting`, `document` or `unset`). `compare` reads none, so every entry is
+  `unset`.
 - `findings`, in order of position: `check`, `rule`, `severity`, `line` and
   `column` (1-based, in characters), `excerpt`, `reason` and `reference`;
   `compare` adds `original_line` and `original_column` where the change has
-  a place in the original.
+  a place in the original. `line` and `column` are always in the revision:
+  for what the revision dropped, the place where it would have stood, the
+  start of the sentence paired with the original's, or of the next one that
+  has a pair. The excerpt is from the text the change is in: the original
+  for what was dropped, the revision for what was added or changed.
 - `counts`: findings by check and severity, counted before anything is cut.
 - `outline` and `terms` when those checks ran. The outline is the headings
   (`level`, `line`, `column`, `text` and the `chars` of the section up to the
