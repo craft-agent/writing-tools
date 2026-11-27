@@ -679,9 +679,15 @@ endings moved against `stance`.
 - **`terms` reads characters, not tokens.** Acronyms, katakana words and
   Latin names are found by their characters, so the inventory is whole
   without the engine; a Japanese proper noun, which only the engine could
-  tell, is not listed. Forms that differ only by a closing ー or by width are
-  one term with the count of each; a loanword and its native equivalent are a
-  choice of style and stay two terms.
+  tell, is not listed. A word is judged whole, so the OS of `iOS` and the
+  データ of データベース are no terms of their own; a dot or a hyphen ends a
+  word, and a quotation or masked text is not read. A Latin word with a
+  capital after its first character (`GitHub`, `iOS`) is a name wherever it
+  stands; one that is only Capitalized (`Linux`, `Application`) is a name only
+  when no other Latin word is beside it across spaces, so `Python で書く` lists
+  it and an English phrase is not listed word by word. Forms that differ only
+  by a closing ー or by width are one term with the count of each; a loanword
+  and its native equivalent are a choice of style and stay two terms.
 - **Nested modifiers are not checked.** No rule finds them reliably without a
   dependency parse, and one that guessed would report sentences that read
   well.
@@ -776,9 +782,14 @@ Both methods return one object:
   `compare` adds `original_line` and `original_column` where the change has
   a place in the original.
 - `counts`: findings by check and severity, counted before anything is cut.
-- `outline` and `terms` when those checks ran.
+- `outline` and `terms` when those checks ran. The outline is the headings
+  (`level`, `line`, `column`, `text` and the `chars` of the section up to the
+  next heading) and the `measures` of the readable lines: how many are bold,
+  list or heading lines, as counts and as shares. A term has its `kind`, its
+  `count`, its `forms` when it is written more than one way, the place of its
+  first use and whether it is `glossed`.
 - `cut`, when something was left out: how many findings, outline entries and
-  terms.
+  terms, each key present only when positive.
 
 Limits:
 
@@ -788,12 +799,13 @@ Limits:
 - **An excerpt is at most 80 characters**, centred on the finding. The text
   is the caller's own, so the report carries only enough of it to find the
   place.
-- **The outline holds at most 200 entries and the terms 100.**
+- **The outline holds at most 200 entries and the terms 100**: the first
+  headings, and the terms used most, in order of first use.
 - **The whole result stays within 65,536 bytes** of JSON. Past it, findings
-  are cut from the lowest severity up, then outline entries and terms, and
-  `cut` says how many. An agent reads the whole result into its context, so a
-  smaller report that says what it left out serves it better than a complete
-  one it cannot read.
+  are cut from the lowest severity up, then outline entries from the end, then
+  the terms used least, and `cut` says how many. An agent reads the whole
+  result into its context, so a smaller report that says what it left out
+  serves it better than a complete one it cannot read.
 
 ## The engine
 

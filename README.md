@@ -187,6 +187,10 @@ writing-tools-cli engine status    # check it against the package's pins
 ```
 
 Without it, those checks are listed as not run and the others still report.
+`outline` and `terms` are inventories that draw no finding and need no engine:
+the headings with their section sizes and the share of bold, list and heading
+lines, and the acronyms, Latin names and katakana words with their forms,
+counts and whether each is glossed.
 
 Install [uv](https://docs.astral.sh/uv/) first. The command creates
 `<state_dir>/engine/venv` from the package's hash-locked requirements, on its
