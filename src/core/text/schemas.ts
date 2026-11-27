@@ -29,6 +29,9 @@ export const NOT_RUN_REASONS = [
   "segment_too_long",
 ] as const satisfies readonly (NotRunReason | "segment_too_long")[]
 
+/** What a `not_run` entry's `text` says when its lines are the original's of a `compare` call. */
+export const NOT_RUN_ORIGINAL = "original"
+
 /** What the report's version names: the shape of the result. */
 export const REPORT_VERSION = 1
 
@@ -143,6 +146,12 @@ const notRun = z.object({
     .optional()
     .describe(
       `The lines the reason concerns, when it concerns some, in order and at most the first ${MAX_NOT_RUN_LINES}.`,
+    ),
+  text: z
+    .literal(NOT_RUN_ORIGINAL)
+    .optional()
+    .describe(
+      "In `compare` only: `original` when `lines` are the original's; absent when they are the revision's, and for a reason that concerns both texts.",
     ),
   action: z.string().optional().describe("The command a person runs to make the rule run, when there is one."),
 })

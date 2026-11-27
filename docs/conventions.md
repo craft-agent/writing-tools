@@ -700,6 +700,17 @@ changed, and endings moved against `stance`.
   revision lost is `critical`; one it added, a marker it changed and an
   ending it moved against the stance are `warn`, since a reader takes them as
   the writer's; content words and leading words are `info`.
+- **Content words are the one rule pair of `compare` that needs the engine.**
+  They are the nouns, verbs, adjectives and adverbs `lexical_repetition`
+  counts, keyed by the engine's normalized form (so a spelling-only change, 行なう and
+  行う, is no change: `notation` is where spelling belongs), less numbers, names, a short list of light
+  words (`する`, `こと`, `ため` and the like; `前` and `後` stay, since swapping
+  them reverses a meaning) and what the engine marks as supporting another
+  word. Because one rewritten sentence changes many words, each word is one
+  finding, with its count in the reason when more than one use differs. A
+  count over part of a text would call the rest a change, so when the engine
+  skipped any paragraph of either text the two rules report nothing, and
+  `not_run` names the lines. The other revision rules never need the engine.
 
 - **Checks are grouped by what they tell a writer**, not by how they work. A
   writer fixing the typography reads `notation`; one fixing the voice reads
@@ -803,7 +814,8 @@ Both methods return one object:
   caller sees what the thresholds were.
 - `not_run`: each check or rule that did not run, with the reason
   (`morphology_unavailable`, `morphology_failed`, `segment_too_long`), the
-  lines it concerns, if any (the first 50 of them), and, when installing the
+  lines it concerns, if any (the first 50 of them; `text: "original"` when
+  they are the original's in `compare`, absent for the revision's), and, when installing the
   engine would make it run, the command that does. A rule that its genre turns
   off, or that needs a stance the call did not give, is not listed: it was
   never meant to run. A check left out is never reported as clean.
@@ -887,7 +899,8 @@ Limits:
   offsets into JavaScript string indexes and checks each surface against
   them, so a token always points at the text it names. The bridge reaches no
   network and writes no file; the call has a 30-second limit, and
-  cancellation kills it.
+  cancellation kills it. `compare` sends the segments of the revision and of
+  the original in that one call.
 - **A segment is a paragraph**, and one over 40,000 bytes of UTF-8 is not
   analyzed: the dictionary's own limit sits a little above it. The rules that
   need tokens skip it and `not_run` names its lines.

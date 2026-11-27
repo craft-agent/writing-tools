@@ -36,6 +36,9 @@ export type Block = {
   lines: readonly number[]
 }
 
+/** The blocks the rules that need tokens read; headings, table rows and quotations are left out. */
+export const SEGMENT_KINDS: readonly Block["kind"][] = ["prose", "list"]
+
 /** The characters that end a sentence. */
 export const TERMINATORS = ["。", "！", "？", "!", "?", "．"] as const
 

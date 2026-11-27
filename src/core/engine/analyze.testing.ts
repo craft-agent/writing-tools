@@ -22,6 +22,7 @@ type RawToken = [string, number, number, number, string, string, string]
 function fakeBridgeScript(record: string): string {
   return `#!/bin/sh
 rec='${record}'
+echo run >> "$rec/runs"
 printf '%s\\n' "$@" > "$rec/argv"
 pwd > "$rec/cwd"
 cat > "$rec/stdin"
@@ -50,6 +51,8 @@ export type FakeBridge = {
   recorded(record: FakeBridgeRecord): Promise<string>
   /** Whether the fake interpreter has been started. */
   started(): Promise<boolean>
+  /** How many times the fake interpreter has been started. */
+  runs(): Promise<number>
 }
 
 export const NOUN: RawPos = ["名詞", "普通名詞", "一般", "*", "*", "*"]
@@ -99,6 +102,11 @@ export async function fakeBridge(): Promise<FakeBridge> {
       readFile(join(record, "argv"), "utf8").then(
         () => true,
         () => false,
+      ),
+    runs: () =>
+      readFile(join(record, "runs"), "utf8").then(
+        (log) => log.trim().split("\n").length,
+        () => 0,
       ),
   }
 }
