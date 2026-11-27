@@ -1,11 +1,23 @@
 import { z } from "zod"
 import type { NotRunReason } from "../engine/tokens"
 import { CONVENTION_NAMES, CONVENTION_SOURCES, CONVENTIONS, DOCUMENT_VALUE } from "./conventions"
-import { DEFAULT_LIMIT, MAX_EXCERPT, MAX_LIMIT, MAX_NOT_RUN_LINES, MAX_RESULT_BYTES, MAX_TEXT_BYTES } from "./limits"
+import {
+  DEFAULT_LIMIT,
+  MAX_EXCERPT,
+  MAX_LIMIT,
+  MAX_NOT_RUN_LINES,
+  MAX_OUTLINE_ENTRIES,
+  MAX_RESULT_BYTES,
+  MAX_TERMS,
+  MAX_TEXT_BYTES,
+} from "./limits"
 import { CHECKS, GENRES, SEVERITIES, STANCES, type Severity } from "./rules"
 
 /** The methods of `writing_text_read`, in the order the schema lists them. */
 export const TEXT_METHODS = ["inspect"] as const
+
+/** What a term of the `terms` inventory is: an acronym, a Latin name or a katakana word. */
+export const TERM_KINDS = ["acronym", "latin", "katakana"] as const
 
 /** Why a check or rule did not run; the engine's reasons, and a paragraph the engine would not take. */
 export const NOT_RUN_REASONS = [
@@ -119,6 +131,69 @@ const resolvedConvention = z.object({
   source: z.enum(CONVENTION_SOURCES),
 })
 
+const share = z.number()
+
+const outline = z.object({
+  headings: z
+    .array(
+      z.object({
+        level: z.number().int().describe("1 to 6, for ATX and setext headings alike."),
+        line: z.number().int().describe("1-based."),
+        column: z.number().int().describe("1-based, in characters: where the heading's text starts."),
+        text: z
+          .string()
+          .describe(`The heading's text without its markers, up to ${MAX_EXCERPT} characters, a clipped end as …`),
+        chars: z
+          .number()
+          .int()
+          .describe(
+            "The non-whitespace characters of the heading's section: from after the heading to the next heading of any level.",
+          ),
+      }),
+    )
+    .describe(
+      `In order of position; at most the first ${MAX_OUTLINE_ENTRIES}. Text before the first heading is no entry.`,
+    ),
+  measures: z
+    .object({
+      lines: z
+        .number()
+        .int()
+        .describe("The readable lines: prose, headings, list items and table rows that are not blank."),
+      chars: z.number().int().describe("The non-whitespace characters of the readable lines."),
+      bold_lines: z.number().int().describe("The readable lines with a bold span that renders."),
+      list_lines: z.number().int(),
+      heading_lines: z.number().int(),
+      bold_spans: z.number().int().describe("The bold spans that render."),
+      bold_share: share.describe("`bold_lines` over `lines`, to 3 decimals; 0 without lines."),
+      list_share: share.describe("`list_lines` over `lines`, to 3 decimals; 0 without lines."),
+      heading_share: share.describe("`heading_lines` over `lines`, to 3 decimals; 0 without lines."),
+      bold_per_thousand: share.describe("`bold_spans` per 1,000 `chars`, to 2 decimals; 0 without characters."),
+    })
+    .describe("Figures over the readable lines of the whole text."),
+})
+
+const term = z.object({
+  term: z
+    .string()
+    .describe(`The most frequent form (the first used on a tie), up to ${MAX_EXCERPT} characters, a clipped end as …`),
+  kind: z.enum(TERM_KINDS),
+  count: z.number().int().describe("Every use of the term, in all its forms."),
+  forms: z
+    .array(z.object({ form: z.string(), count: z.number().int() }))
+    .optional()
+    .describe(
+      "Present only when the term is written in more than one form (a closing ー, full- or halfwidth): each form with its count, in order of first use.",
+    ),
+  line: z.number().int().describe("1-based, of the first use."),
+  column: z.number().int().describe("1-based, in characters, of the first use."),
+  glossed: z
+    .boolean()
+    .describe(
+      "Whether any use is followed by a bracket or a defining phrase (とは, という), or sits in brackets after other text.",
+    ),
+})
+
 export const textReadOutput = z.object({
   report_version: z.literal(REPORT_VERSION),
   method: z.enum(TEXT_METHODS),
@@ -145,11 +220,22 @@ export const textReadOutput = z.object({
       by_severity: severityCounts,
     })
     .describe("Every finding found, counted before any were cut."),
-  cut: z
-    .object({ findings: z.number().int() })
+  outline: outline.optional().describe("Present exactly when the `outline` check ran: an inventory, not a finding."),
+  terms: z
+    .array(term)
     .optional()
     .describe(
-      `Present only when findings were left out, by \`limit\` or by the result's ${MAX_RESULT_BYTES.toLocaleString("en-US")}-byte budget: how many.`,
+      `Present exactly when the \`terms\` check ran: the ${MAX_TERMS} most used terms at most, in order of first use. An inventory, not a finding.`,
+    ),
+  cut: z
+    .object({
+      findings: z.number().int().optional(),
+      outline: z.number().int().optional(),
+      terms: z.number().int().optional(),
+    })
+    .optional()
+    .describe(
+      `Present only when something was left out, by \`limit\`, by the caps or by the result's ${MAX_RESULT_BYTES.toLocaleString("en-US")}-byte budget; each key, present only when positive, counts the findings, outline headings or terms left out.`,
     ),
 })
 
@@ -161,6 +247,15 @@ export type TextReadOutput = z.output<typeof textReadOutput>
 
 /** One finding of a report. */
 export type Finding = z.output<typeof finding>
+
+/** The `outline` inventory: the headings and the measures of the readable lines. */
+export type Outline = z.output<typeof outline>
+
+/** One term of the `terms` inventory. */
+export type Term = z.output<typeof term>
+
+/** What a report left out, by list; a key is present only when it is positive. */
+export type Cut = NonNullable<TextReadOutput["cut"]>
 
 /** A check or rule that did not run. */
 export type NotRun = z.output<typeof notRun>

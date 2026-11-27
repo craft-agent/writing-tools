@@ -13,7 +13,8 @@ import { selectRules } from "./selection"
 /**
  * Inspects a document: resolves what each convention is held to and which
  * rules run, runs the requested checks (all of them when `checks` is left
- * out) in the order of `CHECKS`, and builds the report from what they found.
+ * out) in the order of `CHECKS`, and builds the report from what they found
+ * and from the inventories of the `outline` and `terms` checks that ran.
  * When a rule that is on in a requested check needs morphology, the engine
  * reads the document's prose and list blocks once first (see `readMorphology`),
  * and the rules that could not read some or all of it are listed in `not_run`.
@@ -38,7 +39,12 @@ export async function inspect(
   const { tokens, notRun } = await readMorphology(doc, needTokens, engine)
   const genre = args.genre ?? DEFAULT_GENRE
   const thresholds = resolveThresholds(options, genre)
-  const { findings, settled = {} } = mergeResults(
+  const {
+    findings,
+    settled = {},
+    outline,
+    terms,
+  } = mergeResults(
     ran.map((spec) => spec.run({ doc, conventions, enabled, genre, thresholds, stance: args.stance, tokens })),
   )
   return buildReport({
@@ -49,6 +55,8 @@ export async function inspect(
     conventions: withSettled(conventions, settled),
     notRun,
     found: findings,
+    outline,
+    terms,
     specs: checks,
     limit: args.limit ?? DEFAULT_LIMIT,
   })

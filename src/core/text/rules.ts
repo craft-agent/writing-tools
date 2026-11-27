@@ -1,6 +1,7 @@
 import type { Token } from "../engine/tokens"
 import type { ConventionName, ResolvedConventions } from "./conventions"
 import type { TextDocument } from "./model"
+import type { Outline, Term } from "./schemas"
 
 /** The checks that exist, in the order the report lists them; the others of `docs/conventions.md` are added with their rules. */
 export const CHECKS = ["notation", "expression", "readability"] as const
@@ -91,23 +92,32 @@ export type CheckContext = {
 /**
  * What a check returns: its findings, and the value each `document`
  * convention it read settled on, for the report's `conventions`. A check
- * settles a convention only when it was not given a value.
+ * settles a convention only when it was not given a value. An inventory check
+ * returns its inventory beside no findings: the headings and measures of the
+ * text, or every term, uncut (the report applies the caps).
  */
 export type CheckResult = {
   findings: RawFinding[]
   settled?: Partial<Record<ConventionName, string>>
+  outline?: Outline
+  /** In order of first use. */
+  terms?: Term[]
 }
 
-/** The findings and the settled values of every one of `results`, as one result. */
+/** The findings and the settled values of every one of `results`, as one result, and the inventory of the one that returned it. */
 export function mergeResults(results: readonly CheckResult[]): CheckResult {
   const settled: Partial<Record<ConventionName, string>> = Object.assign({}, ...results.map((result) => result.settled))
+  const outline = results.find((result) => result.outline !== undefined)?.outline
+  const terms = results.find((result) => result.terms !== undefined)?.terms
   return {
     findings: results.flatMap((result) => result.findings),
     ...(Object.keys(settled).length > 0 ? { settled } : {}),
+    ...(outline !== undefined ? { outline } : {}),
+    ...(terms !== undefined ? { terms } : {}),
   }
 }
 
-/** A check: its rules, and the function that finds them in a document. */
+/** A check: its rules, and the function that finds them in a document. An inventory check has no rules. */
 export type CheckSpec = {
   name: CheckName
   rules: readonly RuleSpec[]
