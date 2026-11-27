@@ -140,6 +140,22 @@ export function resolveThresholds(options: ToolOptions, genre: Genre): Threshold
   return { sentence_length: resolve("sentence_length"), kanji_run: resolve("kanji_run"), no_chain: resolve("no_chain") }
 }
 
+/** The tokens at most between one case-marking の and the next for them to belong to one chain in `no_chain`. */
+export const NO_CHAIN_MAX_GAP = 3
+
+/** The tokens at most between two negations for them to form one double negative in `double_negative`. */
+export const DOUBLE_NEGATIVE_MAX_GAP = 6
+
+/**
+ * The items a list buried in a sentence needs before `buried_list` reports it,
+ * and the sentence length (compact characters) at which it does, longest list
+ * first: the more items, the shorter the sentence that is too crowded.
+ */
+export const BURIED_LIST_LIMITS: readonly { items: number; length: number }[] = [
+  { items: 4, length: 50 },
+  { items: 3, length: 80 },
+]
+
 /** The comma-ended clauses in a row at which `comma_run` reports. */
 export const COMMA_RUN_MIN_CLAUSES = 3
 

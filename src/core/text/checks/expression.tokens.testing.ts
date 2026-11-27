@@ -13,7 +13,8 @@ import type { Given } from "./notation.testing"
 /**
  * A stand-in for the engine in the tests of the rules that read tokens: a
  * lexicon of words, each written `surface/pos[/detail][=dictionary]`, cuts a
- * text greedily, longest word first, into the tokens the engine would give.
+ * text greedily, longest word first, into the tokens the engine would give. A
+ * word of the lexicon wins over a word of the same length the tests share.
  * A character the lexicon lacks is an error, so a test never reads a word
  * as something it did not say.
  */
@@ -85,7 +86,7 @@ export function tokensOf(
   lexicon: readonly string[],
   only?: readonly number[],
 ): Map<number, Token[]> {
-  const words = [...BASE_WORDS, ...lexicon].map(parseWord).sort((a, b) => b.surface.length - a.surface.length)
+  const words = [...lexicon, ...BASE_WORDS].map(parseWord).sort((a, b) => b.surface.length - a.surface.length)
   const tokens = new Map<number, Token[]>()
   for (const [index, block] of doc.blocks.entries()) {
     if (block.kind !== "prose" && block.kind !== "list") continue
