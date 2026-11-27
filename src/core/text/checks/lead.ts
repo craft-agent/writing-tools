@@ -38,7 +38,7 @@ function holdsMasked(doc: TextDocument, from: number, to: number): boolean {
 }
 
 /** Whether a masked unit ends just before `at` on its line, with only spaces between: a sentence's start skips masked units, so one that opens with code starts after it. */
-function followsMasked(doc: TextDocument, at: number): boolean {
+export function followsMasked(doc: TextDocument, at: number): boolean {
   let before = at - 1
   while (before >= 0 && INLINE_SPACE.test(doc.masked[before])) before--
   return before >= 0 && doc.masked[before] === MASK_CHAR
