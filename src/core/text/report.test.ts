@@ -101,6 +101,9 @@ describe("buildReport", () => {
       by_check: {
         notation: { critical: 1, warn: 1, info: 2 },
         expression: { critical: 0, warn: 0, info: 0 },
+        readability: { critical: 0, warn: 0, info: 0 },
+        outline: { critical: 0, warn: 0, info: 0 },
+        terms: { critical: 0, warn: 0, info: 0 },
       },
       by_severity: { critical: 1, warn: 1, info: 2 },
     })

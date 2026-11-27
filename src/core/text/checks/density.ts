@@ -1,16 +1,23 @@
 import type { TextDocument } from "../model"
 import type { Genre, RawFinding } from "../rules"
-import { findBoldPairs } from "./bold"
+import { findBoldPairs, type BoldPair } from "./bold"
 import type { LineView } from "./lines"
 import { BOLD_PER_THOUSAND, DENSITY_MIN_CHARS, LIST_MIN_LINES, LIST_SHARE } from "./thresholds"
 
 const WHITESPACE = /\s/g
 const PERCENT = 100
-const PER_THOUSAND = 1000
+
+/** The readable characters a bold rate is taken per. */
+export const PER_THOUSAND = 1000
 
 /** The non-whitespace characters of the lines, a masked unit counting as one. */
 export function readableChars(lines: readonly LineView[]): number {
   return lines.reduce((sum, { text }) => sum + [...text.replace(WHITESPACE, "")].length, 0)
+}
+
+/** The bold spans of the lines that render; a pair that does not is `bold_not_rendered`'s. */
+export function renderedBold(doc: TextDocument, lines: readonly LineView[]): BoldPair[] {
+  return findBoldPairs(doc, lines).filter(({ opens, closes }) => opens && closes)
 }
 
 /**
@@ -20,7 +27,7 @@ export function readableChars(lines: readonly LineView[]): number {
  * counted here.
  */
 export function findBoldDensity(doc: TextDocument, lines: readonly LineView[], genre: Genre): RawFinding[] {
-  const spans = findBoldPairs(doc, lines).filter(({ opens, closes }) => opens && closes)
+  const spans = renderedBold(doc, lines)
   const chars = readableChars(lines)
   const limit = BOLD_PER_THOUSAND[genre]
   const rate = (spans.length / chars) * PER_THOUSAND

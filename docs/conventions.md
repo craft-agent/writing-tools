@@ -658,13 +658,13 @@ and every entry point checks them the same way.
 
 ## Checks
 
-| Check         | Reports                                                                                                     |
-| ------------- | ----------------------------------------------------------------------------------------------------------- |
-| `notation`    | typography and spelling: spacing, widths, punctuation, quotation marks, ranges, long vowels, counters       |
-| `expression`  | stock phrasing, translationese, monotonous rhythm and endings, formatting density, wording and register mix |
-| `readability` | long sentences, runs of kanji, chained の, double negatives, lists buried in a sentence, comma density      |
-| `outline`     | an inventory: the heading tree, each section's size, and the share of bold, list and heading lines          |
-| `terms`       | an inventory: acronyms, katakana terms and proper nouns, how often each appears and whether it is glossed   |
+| Check         | Reports                                                                                                                                  |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `notation`    | typography and spelling: spacing, widths, punctuation, quotation marks, ranges, long vowels, counters                                    |
+| `expression`  | stock phrasing, translationese, monotonous rhythm and endings, repeated openings and words, formatting density, wording and register mix |
+| `readability` | long sentences, runs of kanji, short clauses in a row, chained の, double negatives, lists buried in a sentence                          |
+| `outline`     | an inventory: the headings with their levels and section sizes, and the share of bold, list and heading lines                            |
+| `terms`       | an inventory: acronyms, katakana words and Latin names, the forms of each, how often each appears and whether it is glossed              |
 
 `compare` runs the revision checks: numbers, names and content words found in
 only one of the two texts, obligation, conjecture and emphasis markers added
@@ -674,7 +674,23 @@ endings moved against `stance`.
 - **Checks are grouped by what they tell a writer**, not by how they work. A
   writer fixing the typography reads `notation`; one fixing the voice reads
   `expression`. The inventories return figures and draw no finding: a heading
-  tree is neither right nor wrong.
+  tree is neither right nor wrong, and a level it skips shows in the levels it
+  lists.
+- **`terms` reads characters, not tokens.** Acronyms, katakana words and
+  Latin names are found by their characters, so the inventory is whole
+  without the engine; a Japanese proper noun, which only the engine could
+  tell, is not listed. A word is judged whole, so the OS of `iOS` and the
+  データ of データベース are no terms of their own; a dot or a hyphen ends a
+  word, and a quotation or masked text is not read. A Latin word with a
+  capital after its first character (`GitHub`, `iOS`) is a name wherever it
+  stands; one that is only Capitalized (`Linux`, `Application`) is a name only
+  when no other Latin word is beside it across spaces, so `Python で書く` lists
+  it and an English phrase is not listed word by word. Forms that differ only
+  by a closing ー or by width are one term with the count of each; a loanword
+  and its native equivalent are a choice of style and stay two terms.
+- **Nested modifiers are not checked.** No rule finds them reliably without a
+  dependency parse, and one that guessed would report sentences that read
+  well.
 - **Every rule has an id**, snake_case and unique across the checks, which the
   `rules` and `exclude_rules` lists, a finding and the skill name. Renaming one
   breaks a setting, so it is a breaking change.
@@ -737,11 +753,14 @@ value is one of those listed; any other is refused as `invalid_argument`.
   `invalid_argument`, since a misspelt id would silently do nothing.
 - **Thresholds** are bounded whole numbers; unset, the genre's value applies:
 
-  | Setting           | Bounds | Decides                                                     |
-  | ----------------- | ------ | ----------------------------------------------------------- |
-  | `sentence_length` | 20–400 | the characters past which a sentence is reported as long    |
-  | `kanji_run`       | 4–20   | the kanji in a row past which a run is reported             |
-  | `no_chain`        | 2–10   | the case-marking の in a row past which a chain is reported |
+  | Setting           | Bounds | Unset             | Decides                                                     |
+  | ----------------- | ------ | ----------------- | ----------------------------------------------------------- |
+  | `sentence_length` | 20–400 | 90, 110 in essays | the characters past which a sentence is reported as long    |
+  | `kanji_run`       | 4–20   | 6                 | the kanji in a row past which a run is reported             |
+  | `no_chain`        | 2–10   | 2                 | the case-marking の in a row past which a chain is reported |
+
+  A setting holds every genre to its value. The defaults were set on a small
+  set of texts; a writer whose texts read well past them sets their own.
 
 ## The report
 
@@ -763,9 +782,14 @@ Both methods return one object:
   `compare` adds `original_line` and `original_column` where the change has
   a place in the original.
 - `counts`: findings by check and severity, counted before anything is cut.
-- `outline` and `terms` when those checks ran.
+- `outline` and `terms` when those checks ran. The outline is the headings
+  (`level`, `line`, `column`, `text` and the `chars` of the section up to the
+  next heading) and the `measures` of the readable lines: how many are bold,
+  list or heading lines, as counts and as shares. A term has its `kind`, its
+  `count`, its `forms` when it is written more than one way, the place of its
+  first use and whether it is `glossed`.
 - `cut`, when something was left out: how many findings, outline entries and
-  terms.
+  terms, each key present only when positive.
 
 Limits:
 
@@ -775,12 +799,13 @@ Limits:
 - **An excerpt is at most 80 characters**, centred on the finding. The text
   is the caller's own, so the report carries only enough of it to find the
   place.
-- **The outline holds at most 200 entries and the terms 100.**
+- **The outline holds at most 200 entries and the terms 100**: the first
+  headings, and the terms used most, in order of first use.
 - **The whole result stays within 65,536 bytes** of JSON. Past it, findings
-  are cut from the lowest severity up, then outline entries and terms, and
-  `cut` says how many. An agent reads the whole result into its context, so a
-  smaller report that says what it left out serves it better than a complete
-  one it cannot read.
+  are cut from the lowest severity up, then outline entries from the end, then
+  the terms used least, and `cut` says how many. An agent reads the whole
+  result into its context, so a smaller report that says what it left out
+  serves it better than a complete one it cannot read.
 
 ## The engine
 

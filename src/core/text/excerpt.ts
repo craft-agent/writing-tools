@@ -57,3 +57,8 @@ export function excerptOf(text: string, start: number, end: number): string {
   }
   return ""
 }
+
+/** The whole of `text` when it fits within {@link MAX_EXCERPT} code points, else its start with a clipped end as `…`. */
+export function leadOf(text: string): string {
+  return excerptOf(text, 0, text.length)
+}

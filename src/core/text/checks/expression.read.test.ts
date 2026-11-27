@@ -1,12 +1,9 @@
 import { describe, expect, test } from "bun:test"
 import { invoke } from "../../tool"
 import { writingTextRead } from "../read"
-import { TOKEN_RULES, unavailable } from "./expression.tokens.testing"
+import { ALL_TOKEN_RULES_NOT_RUN as TOKEN_RULES_NOT_RUN } from "./readability.tokens.testing"
 
 const CTX = { cwd: process.cwd() }
-
-/** What a call without an engine lists: the rules on by default that read tokens. */
-const TOKEN_RULES_NOT_RUN = unavailable(...TOKEN_RULES)
 
 /** A text that draws every rule of the formatting, rhythm and stance groups once, and none of the others: all its sentences are about 15 characters long. */
 const TEXT = [

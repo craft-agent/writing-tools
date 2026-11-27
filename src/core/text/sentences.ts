@@ -1,7 +1,8 @@
 import { MASK_CHAR, TERMINATORS, type Block, type Line, type Sentence, type Terminator } from "./model"
 
-const OPENING_BRACKETS = new Set([..."「『（("])
-const CLOSING_BRACKETS = new Set([..."」』）)"])
+/** The brackets inside which a terminator does not end a sentence and a comma does not end a clause. */
+export const OPENING_BRACKETS = new Set([..."「『（("])
+export const CLOSING_BRACKETS = new Set([..."」』）)"])
 /** What may follow a terminator and still belong to its sentence. */
 const TRAILING_CLOSERS = new Set([..."」』）)]】〉》\"'”’"])
 const ASCII_LAST = 0x7f

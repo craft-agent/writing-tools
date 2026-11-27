@@ -1,9 +1,10 @@
 import type { Token } from "../engine/tokens"
 import type { ConventionName, ResolvedConventions } from "./conventions"
 import type { TextDocument } from "./model"
+import type { Outline, Term } from "./schemas"
 
-/** The checks that exist, in the order the report lists them; the others of `docs/conventions.md` are added with their rules. */
-export const CHECKS = ["notation", "expression"] as const
+/** The checks that exist, in the order the report lists them. `outline` and `terms` are inventories: they have no rules and draw no finding. */
+export const CHECKS = ["notation", "expression", "readability", "outline", "terms"] as const
 
 /** The name of a check. */
 export type CheckName = (typeof CHECKS)[number]
@@ -57,7 +58,17 @@ export type RawFinding = {
   severity?: Severity
 }
 
-/** What a check reads: the document, what each convention is held to, which rules run, the genre and the stance, and the tokens. */
+/** The length thresholds the call holds the text to, by the name of the setting that moves each. */
+export type Thresholds = {
+  /** The characters past which a sentence is long. */
+  sentence_length: number
+  /** The kanji in a row past which a run is reported. */
+  kanji_run: number
+  /** The case-marking の in a row past which a chain is reported. */
+  no_chain: number
+}
+
+/** What a check reads: the document, what each convention is held to, which rules run, the genre, the thresholds and the stance, and the tokens. */
 export type CheckContext = {
   doc: TextDocument
   conventions: ResolvedConventions
@@ -65,6 +76,8 @@ export type CheckContext = {
   enabled(rule: string): boolean
   /** The genre the call holds the text to. */
   genre: Genre
+  /** The thresholds the call holds the text to: the settings' values, else the genre's. */
+  thresholds: Thresholds
   /** The stance the call holds the sentence endings to; `undefined` when it gave none. */
   stance: Stance | undefined
   /**
@@ -79,23 +92,32 @@ export type CheckContext = {
 /**
  * What a check returns: its findings, and the value each `document`
  * convention it read settled on, for the report's `conventions`. A check
- * settles a convention only when it was not given a value.
+ * settles a convention only when it was not given a value. An inventory check
+ * returns its inventory beside no findings: the headings and measures of the
+ * text, or every term, uncut (the report applies the caps).
  */
 export type CheckResult = {
   findings: RawFinding[]
   settled?: Partial<Record<ConventionName, string>>
+  outline?: Outline
+  /** In order of first use. */
+  terms?: Term[]
 }
 
-/** The findings and the settled values of every one of `results`, as one result. */
+/** The findings and the settled values of every one of `results`, as one result, and the inventory of the one that returned it. */
 export function mergeResults(results: readonly CheckResult[]): CheckResult {
   const settled: Partial<Record<ConventionName, string>> = Object.assign({}, ...results.map((result) => result.settled))
+  const outline = results.find((result) => result.outline !== undefined)?.outline
+  const terms = results.find((result) => result.terms !== undefined)?.terms
   return {
     findings: results.flatMap((result) => result.findings),
     ...(Object.keys(settled).length > 0 ? { settled } : {}),
+    ...(outline !== undefined ? { outline } : {}),
+    ...(terms !== undefined ? { terms } : {}),
   }
 }
 
-/** A check: its rules, and the function that finds them in a document. */
+/** A check: its rules, and the function that finds them in a document. An inventory check has no rules. */
 export type CheckSpec = {
   name: CheckName
   rules: readonly RuleSpec[]
