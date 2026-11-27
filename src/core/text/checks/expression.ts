@@ -1,12 +1,18 @@
 import type { CheckContext, CheckSpec, RawFinding, RuleSpec, Severity } from "../rules"
 import { mergeResults } from "../rules"
 import { findBoldNotRendered } from "./bold"
+import { findContrastOveruse } from "./contrast"
 import { judgeConvention } from "./convention"
 import { findBoldDensity, findListDensity } from "./density"
+import { findEmoji } from "./emoji"
+import { BUZZWORD_REASON, METAPHOR_REASON, METAPHOR_VERBS, VAGUE_BUZZWORDS } from "./figurative"
 import { readableLines } from "./lines"
+import { findRewrites, findWords } from "./phrases"
 import { findRegister } from "./register"
 import { findChoppySentences, findEndingRepetition, findUniformSentenceLength } from "./rhythm"
 import { findStanceEnding } from "./stance"
+import { STOCK_PHRASES } from "./stock"
+import { TRANSLATIONESE } from "./translationese"
 
 /** The `register` rule: a convention rule on by default that needs no morphology, explained in `expression.md`. */
 const REGISTER_RULE: RuleSpec = {
@@ -63,14 +69,41 @@ const FINDING_RULES: readonly FindingRule[] = [
     spec: rule("stance_ending", "warn", { needsStance: true }),
     find: ({ doc, stance }) => (stance === undefined ? [] : findStanceEnding(doc, stance)),
   },
+  {
+    spec: rule("stock_phrase", "info"),
+    find: ({ doc }) => findRewrites(readableLines(doc), "stock_phrase", STOCK_PHRASES),
+  },
+  {
+    spec: rule("translationese", "info"),
+    find: ({ doc }) => findRewrites(readableLines(doc), "translationese", TRANSLATIONESE),
+  },
+  {
+    spec: rule("vague_buzzword", "info", { defaultOn: false }),
+    find: ({ doc }) => findWords(readableLines(doc), "vague_buzzword", VAGUE_BUZZWORDS, BUZZWORD_REASON),
+  },
+  {
+    spec: rule("metaphor_verb", "info", { defaultOn: false }),
+    find: ({ doc }) => findWords(readableLines(doc), "metaphor_verb", METAPHOR_VERBS, METAPHOR_REASON),
+  },
+  {
+    spec: rule("contrast_overuse", "info", { defaultOn: false }),
+    find: ({ doc, genre }) => findContrastOveruse(doc, readableLines(doc), genre),
+  },
+  {
+    spec: rule("emoji", "info", { defaultOn: false }),
+    find: ({ doc }) => findEmoji(readableLines(doc)),
+  },
 ]
 
 /**
  * Voice and wording: the register of the sentences, held to the `register`
  * convention's value or to the text's own majority; the Markdown bold that
  * does not render and the density of bold and lists; the rhythm of the
- * sentence endings and lengths; and the endings a stance rules out. A rule
- * that is off is neither run nor settled.
+ * sentence endings and lengths; the endings a stance rules out; the phrases
+ * that add length and no meaning, and the constructions carried over from a
+ * translation; and, when `rules` names them, the buzzwords, metaphors, runs of
+ * contrast constructions and emoji. A rule that is off is neither run nor
+ * settled.
  */
 export const expressionCheck: CheckSpec = {
   name: "expression",
